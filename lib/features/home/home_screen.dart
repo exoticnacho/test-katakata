@@ -25,10 +25,10 @@ class HomeScreen extends ConsumerWidget {
           children: [
             Image.asset(
               'assets/images/logo_katakata.png',
-              height: 32, 
+              height: 60, 
             ),
-            const SizedBox(width: 8),
-            const MascotWidget(size: 32, assetName: 'mascot_main.png'), 
+            const SizedBox(width: 1),
+            const MascotWidget(size: 50, assetName: 'mascot_main.png'), 
           ],
         ),
         actions: [
@@ -38,9 +38,9 @@ class HomeScreen extends ConsumerWidget {
               context.push('/profile'); 
             },
             // FIX: Menggunakan ikon Avatar/Person standar Material (atau ikon kustom)
-            icon: Image.asset('assets/images/icon_avatar_placeholder.png', width: 32, height: 32),
+            icon: Image.asset('assets/images/icon_avatar_placeholder.png', width: 50, height: 50),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 1),
         ],
       ),
       body: Padding(
@@ -103,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
                  context.push('/lesson');
               },
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 15),
             
             // Kontainer untuk maskot bicara (Speech Bubble)
             Container(
@@ -117,8 +117,8 @@ class HomeScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   // FIX: Ukuran Maskot Speech (60)
-                  const MascotWidget(size: 60, assetName: 'mascot_speech.png'), 
-                  const SizedBox(width: 16),
+                  const MascotWidget(size: 90, assetName: 'mascot_speech.png'), 
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Text(
                       userProfile != null ? 'Halo ${userProfile.name}! Yuk lanjut belajar hari ini!' : 'Memuat...',

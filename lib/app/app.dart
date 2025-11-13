@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:katakata_app/core/services/auth_service.dart';
+import 'package:katakata_app/core/services/user_service.dart'; // Import user service
 import 'package:katakata_app/features/splash/splash_screen.dart';
 import 'package:katakata_app/features/onboarding/onboarding_screen.dart';
 import 'package:katakata_app/features/auth/sign_in_screen.dart';
-// Import Halaman Utama dan Layout Baru
-import 'package:katakata_app/features/main/main_layout_screen.dart'; // File baru
+import 'package:katakata_app/features/main/main_layout_screen.dart'; 
 import 'package:katakata_app/features/home/home_screen.dart';
 import 'package:katakata_app/features/lesson/lesson_screen.dart';
 import 'package:katakata_app/features/profile/profile_screen.dart';
 import 'package:katakata_app/features/statistics/statistics_screen.dart';
+import 'package:katakata_app/widgets/level_up_modal.dart'; // Import modal baru
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   
@@ -23,7 +24,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (BuildContext context, GoRouterState state) {
       final bool loggedIn = authState;
       final String location = state.uri.toString();
-
       final isPublicRoute = (location == '/' || location == '/onboarding' || location == '/signin');
       final isAuthRoute = location.startsWith('/home') || location.startsWith('/profile') || location.startsWith('/statistik') || location.startsWith('/lesson');
 
@@ -34,9 +34,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       if (loggedIn && isPublicRoute) {
         return '/home';
       }
-
       return null;
-    },
+    },  
 
     routes: [
       // Rute non-authenticated (Splash, Onboarding, Sign In)
@@ -56,21 +55,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Rute Authenticated dengan Bottom Navbar (ShellRoute)
       ShellRoute(
         builder: (context, state, child) {
-          // Gunakan kerangka MainLayoutScreen untuk semua rute anak
           return MainLayoutScreen(child: child);
         },
         routes: [
-          // Navigasi 0: Home (Awal/Index)
           GoRoute(
             path: '/home',
             builder: (context, state) => const HomeScreen(),
           ),
-          // Navigasi 1: Statistik
           GoRoute(
             path: '/statistik',
             builder: (context, state) => const StatisticsScreen(),
           ),
-          // Navigasi 2: Profile
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
@@ -93,6 +88,17 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    
+    // LISTENER GLOBAL UNTUK LEVEL UP
+    ref.listen<UserProfile?>(userProfileProvider, (previous, next) {
+        if (next != null && next.isLevelingUp && context.mounted) {
+            // Tampilkan pop-up Level Up
+            showDialog(
+                context: context,
+                builder: (context) => LevelUpModal(newLevel: next.currentLevel),
+            );
+        }
+    });
 
     return MaterialApp.router(
       title: 'KataKata',

@@ -12,8 +12,10 @@ import 'package:katakata_app/widgets/mascot_widget.dart';
 class LessonScreen extends ConsumerWidget {
   const LessonScreen({super.key});
 
+  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.watch(userProfileProvider); // Ditonton di sini
     final lessonState = ref.watch(lessonProvider);
     final lessonNotifier = ref.read(lessonProvider.notifier);
     
@@ -54,86 +56,160 @@ class LessonScreen extends ConsumerWidget {
               minHeight: 8,
             ),
             const SizedBox(height: 20),
-            Text(
-              currentQuestion.text,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: KataKataColors.charcoal,
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: KataKataColors.kuningCerah, // Warna Latar Pertanyaan
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: KataKataColors.charcoal),
+                boxShadow: [
+                  BoxShadow(
+                    color: KataKataColors.charcoal.withOpacity(0.4),
+                    offset: const Offset(4, 4),
+                    blurRadius: 0,
+                  )
+                ]
               ),
-              textAlign: TextAlign.center,
+              child: Text(
+                currentQuestion.text,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: KataKataColors.charcoal,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 30),
-            ...List.generate(
-              currentQuestion.options.length,
-              (index) {
-                final option = currentQuestion.options[index];
-                final isSelected = lessonState.selectedOption == option;
-                final isCorrect = option == currentQuestion.correctAnswer;
-                
-                // Logika Warna
-                Color buttonColor = KataKataColors.offWhite;
-                if (lessonState.answerSubmitted) {
-                    if (isCorrect) {
-                        buttonColor = Colors.green.shade400; 
+            
+            // Opsi Jawaban
+            Expanded(
+              child: ListView(
+                children: List.generate(
+                  currentQuestion.options.length,
+                  (index) {
+                    final option = currentQuestion.options[index];
+                    final isSelected = lessonState.selectedOption == option;
+                    final isCorrect = option == currentQuestion.correctAnswer;
+                    
+                    Color buttonColor = KataKataColors.offWhite;
+                    Color borderColor = KataKataColors.charcoal;
+                    double shadowOffset = 4.0;
+                    
+                    if (lessonState.answerSubmitted) {
+                        if (isCorrect) {
+                            buttonColor = Colors.green.shade400; 
+                            borderColor = Colors.green.shade800;
+                            shadowOffset = 0.0;
+                        } else if (isSelected) {
+                            buttonColor = Colors.red.shade400; 
+                            borderColor = Colors.red.shade800;
+                            shadowOffset = 0.0;
+                        }
                     } else if (isSelected) {
-                        buttonColor = Colors.red.shade400; 
+                        buttonColor = KataKataColors.kuningCerah;
+                        shadowOffset = 2.0;
                     }
-                } else if (isSelected) {
-                    buttonColor = KataKataColors.kuningCerah.withOpacity(0.7);
-                }
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: ElevatedButton(
-                    onPressed: lessonState.answerSubmitted
-                        ? null
-                        : () => lessonNotifier.selectAnswer(option),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: buttonColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: KataKataColors.charcoal, width: 2),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      children: [
-                        // PERBAIKAN ASET: Mengganti Icon standar dengan Image.asset
-                        Image.asset(
-                          'assets/images/icon_lesson_option.png',
-                          width: 20,
-                          height: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          option,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: KataKataColors.charcoal,
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0), 
+                      child: GestureDetector(
+                        onTap: lessonState.answerSubmitted
+                            ? null
+                            : () => lessonNotifier.selectAnswer(option),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: buttonColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderColor, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: KataKataColors.charcoal.withOpacity(0.3),
+                                offset: Offset(shadowOffset, shadowOffset),
+                                blurRadius: 0,
+                              ),
+                            ]
+                          ),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                'assets/images/icon_lesson_option.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  option,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: KataKataColors.charcoal,
+                                  ),
+                                ),
+                              ),
+                              if (lessonState.answerSubmitted)
+                                  if (isCorrect)
+                                    const MascotWidget(size: 24, assetName: 'mascot_lesson.png')
+                                  else if (isSelected)
+                                    const Icon(Icons.close, color: KataKataColors.charcoal, size: 24),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        if (lessonState.answerSubmitted && isCorrect)
-                          // PERBAIKAN ASET: Maskot kecil di jawaban benar
-                          const MascotWidget(size: 24, assetName: 'mascot_lesson.png'), 
-                      ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            
+            // Tombol Lanjut (Logika Submit)
+            if (lessonState.selectedOption != null)
+              Container(
+                padding: const EdgeInsets.only(top: 20.0),
+                width: double.infinity,
+                child: KataKataButton(
+                  text: lessonState.answerSubmitted 
+                      ? (lessonState.currentIndex < lessonState.questions.length - 1 ? 'Lanjut' : 'Selesai')
+                      : 'Cek Jawaban',
+                  onPressed: () {
+                    if (lessonState.answerSubmitted) {
+                       // FASE 2: Lanjut ke pertanyaan berikutnya / Selesai
+                       // FIX: Cek apakah userProfile sudah valid sebelum menambah XP
+                       if (lessonState.isCorrect && userProfile != null) {
+                          ref.read(userProfileProvider.notifier).addXp(10);
+                       }
+                       lessonNotifier.nextQuestion();
+                    } else {
+                       // FASE 1: Cek Jawaban -> Panggil submitAnswer
+                       lessonNotifier.submitAnswer(); 
+                    }
+                  },
+                ),
+              )
+            else 
+              // Hint: Tombol yang belum aktif
+              Container(
+                padding: const EdgeInsets.only(top: 20.0),
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KataKataColors.violetCerah.withOpacity(0.5),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: Text(
+                    'Pilih Jawaban Dulu', 
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
-                );
-              },
-            ),
-            const Spacer(),
-            if (lessonState.answerSubmitted)
-              KataKataButton(
-                text: lessonState.currentIndex < lessonState.questions.length - 1 ? 'Lanjut' : 'Selesai',
-                onPressed: () {
-                  if (lessonState.isCorrect) {
-                     ref.read(userProfileProvider.notifier).addXp(10);
-                  }
-                  lessonNotifier.nextQuestion();
-                },
+                ),
               ),
           ],
         ),
@@ -142,14 +218,18 @@ class LessonScreen extends ConsumerWidget {
   }
 
   void _showLevelUpModal(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.read(userProfileProvider);
+    
+    // FIX: Tambahkan XP hanya jika userProfile tidak null
+    if (userProfile != null) {
+        ref.read(userProfileProvider.notifier).addXp(50); 
+    }
+    ref.read(lessonProvider.notifier).resetLesson(); 
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        // PERBAIKAN: Pastikan ini dipanggil saat modal pertama kali muncul
-        ref.read(userProfileProvider.notifier).addXp(50);
-        ref.read(lessonProvider.notifier).resetLesson();
-
         return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
           title: Center(
@@ -165,7 +245,6 @@ class LessonScreen extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // PERBAIKAN ASET: Maskot utama di modal
               const MascotWidget(size: 64, assetName: 'mascot_main.png'), 
               const SizedBox(height: 20),
               Text(
@@ -177,7 +256,6 @@ class LessonScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              // PERBAIKAN ASET: Icon XP/Streak
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

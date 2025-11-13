@@ -72,7 +72,6 @@ class MainLayoutScreen extends StatelessWidget {
               icon: Opacity(
                 opacity: currentIndex == 2 ? 1.0 : 0.6,
                 child: Image.asset(
-                  // Menggunakan placeholder karena aset avatar asli sulit diwarnai
                   'assets/images/icon_avatar_placeholder.png', 
                   height: iconSize, // FIX: Ukuran 40px
                   color: currentIndex == 2 ? KataKataColors.pinkCeria : KataKataColors.charcoal,

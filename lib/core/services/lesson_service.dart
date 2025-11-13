@@ -94,19 +94,29 @@ class LessonNotifier extends StateNotifier<LessonState> {
   );
 
   void selectAnswer(String option) {
-    if (state.answerSubmitted) return; // Jangan proses jika jawaban sudah dikirim
-
+    if (state.answerSubmitted) return; 
+    
+    // Simpan pilihan dan status koreksi sementara
     final currentQuestion = state.questions[state.currentIndex];
     final isCorrect = option == currentQuestion.correctAnswer;
-
+    
     state = state.copyWith(
       selectedOption: option,
-      answerSubmitted: true,
-      isCorrect: isCorrect,
+      isCorrect: isCorrect, // Status ini berguna untuk UI saat ini
     );
-
-    // Logika untuk menambah XP akan dipindahkan ke screen
   }
+
+  // FIX: Metode baru untuk memproses jawaban
+  void submitAnswer() {
+     if (state.selectedOption == null || state.answerSubmitted) return;
+     
+     // Gunakan isCorrect yang sudah dihitung di selectAnswer
+     state = state.copyWith(
+        answerSubmitted: true,
+        // isCorrect sudah dihitung di selectAnswer
+     );
+  }
+  
 
   void nextQuestion() {
     if (state.currentIndex < state.questions.length - 1) {

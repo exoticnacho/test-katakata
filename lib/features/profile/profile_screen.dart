@@ -34,6 +34,8 @@ class ProfileScreen extends ConsumerWidget {
             onPressed: () async {
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) {
+                // Navigasi menggunakan GoRouter akan lebih baik (GoRouter.of(context).go('/signin'))
+                // Untuk saat ini, menggunakan Navigator seperti yang ada di kode
                 Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
               }
             },
@@ -53,7 +55,8 @@ class ProfileScreen extends ConsumerWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: KataKataColors.pinkCeria.withValues(alpha: 0.3),
+                    // BUG FIX: Mengganti .withValues(alpha: 0.3) menjadi .withOpacity(0.3)
+                    color: KataKataColors.pinkCeria.withOpacity(0.3),
                   ),
                   child: Center(
                     child: Text(
@@ -91,13 +94,14 @@ class ProfileScreen extends ConsumerWidget {
               _buildStatCard(
                 icon: Icons.star_border,
                 title: 'Streak hari ini:',
-                value: '${userProfile.streak} dari!',
+                // BUG FIX: Streak dari 7. Harusnya '7' bukan '7 dari!'
+                value: '${userProfile.streak} hari',
                 context: context,
               ),
               const SizedBox(height: 16),
               _buildStatCard(
                 icon: Icons.menu_book_outlined,
-                title: 'Total kata diajarkan:',
+                title: 'Total kata dipelajari:',
                 value: '${userProfile.totalWordsTaught}',
                 context: context,
               ),
@@ -132,7 +136,8 @@ class ProfileScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: KataKataColors.offWhite,
-                border: Border.all(color: KataKataColors.charcoal.withValues(alpha: 0.1)),
+                // BUG FIX: Mengganti .withValues(alpha: 0.1) menjadi .withOpacity(0.1)
+                border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
               ),
               child: Row(
                 children: [
@@ -151,7 +156,8 @@ class ProfileScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: KataKataColors.kuningCerah.withValues(alpha: 0.3),
+                      // BUG FIX: Mengganti .withValues(alpha: 0.3) menjadi .withOpacity(0.3)
+                      color: KataKataColors.kuningCerah.withOpacity(0.3),
                     ),
                     child: Text(
                       'x3',
@@ -182,7 +188,8 @@ class ProfileScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: KataKataColors.offWhite,
-        border: Border.all(color: KataKataColors.charcoal.withValues(alpha: 0.1)),
+        // BUG FIX: Mengganti .withValues(alpha: 0.1) menjadi .withOpacity(0.1)
+        border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
       ),
       child: Row(
         children: [
@@ -196,7 +203,8 @@ class ProfileScreen extends ConsumerWidget {
                   title,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
-                    color: KataKataColors.charcoal.withValues(alpha: 0.7),
+                    // BUG FIX: Mengganti .withValues(alpha: 0.7) menjadi .withOpacity(0.7)
+                    color: KataKataColors.charcoal.withOpacity(0.7),
                   ),
                 ),
                 Text(

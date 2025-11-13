@@ -10,13 +10,13 @@ class User {
   User({required this.id, required this.name, required this.email});
 }
 
-// Ganti nama provider agar lebih deskriptif
+// INI ADALAH STATUS LOGIN (BENAR/SALAH)
 final isAuthenticatedProvider = StateProvider<bool>((ref) => false);
 
 // Provider untuk menyimpan data user yang sedang login
 final userProvider = StateProvider<User?>((ref) => null);
 
-// StateNotifierProvider untuk mengelola logika login/logout
+// INI ADALAH STATUS LOADING (SIBUK/TIDAK)
 final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
   return AuthNotifier(ref);
 });
@@ -24,11 +24,15 @@ final authProvider = StateNotifierProvider<AuthNotifier, bool>((ref) {
 class AuthNotifier extends StateNotifier<bool> {
   final Ref ref;
 
-  AuthNotifier(this.ref) : super(false); // Awalnya tidak login
+  AuthNotifier(this.ref) : super(false); // Awalnya tidak loading (false)
 
-  // Fungsi login (nanti akan diganti dengan Firebase Auth)
+  // Fungsi login
   Future<void> login(String email, String password) async {
-    // Simulasi login - nanti diganti dengan Firebase
+    state = true; // 1. Set isLoading = true
+    
+    // Simulasi login (menunggu 1 detik)
+    await Future.delayed(const Duration(seconds: 1));
+
     if (email == 'user@example.com' && password == 'password') {
       // Simpan data user ke userProvider
       ref.read(userProvider.notifier).state = User(
@@ -36,19 +40,23 @@ class AuthNotifier extends StateNotifier<bool> {
         name: 'Pengguna KataKata',
         email: email,
       );
-      // Ubah status login
-      state = true; // state = true artinya login
+      
+      // PERBAIKAN BUG: Update status login (isAuthenticatedProvider) menjadi true
+      ref.read(isAuthenticatedProvider.notifier).state = true;
+
     } else {
-      // Login gagal - tidak ubah state
-      // print('Login gagal');
+      // Login gagal (tidak melakukan apa-apa)
     }
+    
+    state = false; // 3. Set isLoading = false
   }
 
   // Fungsi logout
   Future<void> logout() async {
     // Hapus data user dari userProvider
     ref.read(userProvider.notifier).state = null;
-    // Ubah status logout
-    state = false; // state = false artinya logout
+    
+    // PERBAIKAN BUG: Update status login (isAuthenticatedProvider) menjadi false
+    ref.read(isAuthenticatedProvider.notifier).state = false;
   }
 }

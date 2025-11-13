@@ -18,11 +18,13 @@ class MascotWidget extends StatelessWidget {
         shape: BoxShape.circle,
         color: KataKataColors.pinkCeria,
       ),
-      child: Center( // Hapus const karena child menggunakan perhitungan size
+      // Perbaikan: Hapus const dari Center karena child-nya menggunakan
+      // perhitungan runtime (size * 0.5)
+      child: Center(
         child: Text(
           'B',
-          style: GoogleFonts.poppins( // Tambahkan const pada style jika tidak menggunakan perhitungan
-            fontSize: size * 0.5, // Ini adalah perhitungan runtime, jadi style tidak bisa const
+          style: GoogleFonts.poppins( 
+            fontSize: size * 0.5, 
             color: KataKataColors.charcoal,
             fontWeight: FontWeight.bold,
           ),

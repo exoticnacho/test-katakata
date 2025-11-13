@@ -18,10 +18,26 @@ class UserProfile {
     required this.currentLevel,
     required this.xp,
   });
+
+  // Method copyWith di dalam class UserProfile (Perbaikan Bug)
+  UserProfile copyWith({
+    String? name,
+    int? streak,
+    int? totalWordsTaught,
+    int? currentLevel,
+    int? xp,
+  }) {
+    return UserProfile(
+      name: name ?? this.name,
+      streak: streak ?? this.streak,
+      totalWordsTaught: totalWordsTaught ?? this.totalWordsTaught,
+      currentLevel: currentLevel ?? this.currentLevel,
+      xp: xp ?? this.xp,
+    );
+  }
 }
 
 // StateNotifierProvider untuk mengelola data profil user
-// Kita gunakan StateProvider dulu, lalu gunakan ref.listen di StateNotifier untuk mengupdate.
 final userProfileProvider = StateNotifierProvider<UserProfileNotifier, UserProfile?>((ref) {
   return UserProfileNotifier(ref);
 });
@@ -56,36 +72,32 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   // Fungsi untuk menambah XP setelah latihan
   void addXp(int xpToAdd) {
     if (state != null) {
+      // Menggunakan copyWith yang sudah diperbaiki
       state = state!.copyWith(xp: state!.xp + xpToAdd);
+      
+      // LOGIKA LEVEL UP (Tambahan Opsional)
+      // Jika XP melebihi 1000, naik level
+      if (state!.xp >= 1000 * state!.currentLevel) {
+          levelUp();
+      }
     }
   }
 
-  // Fungsi untuk naik level (simulasi)
+  // Fungsi untuk naik level
   void levelUp() {
     if (state != null) {
+      // Atur level baru, dan sisakan sisa XP (seperti Duolingo)
+      int nextLevel = state!.currentLevel + 1;
+      int remainingXp = state!.xp - (1000 * (nextLevel - 1));
+
       state = state!.copyWith(
-        currentLevel: state!.currentLevel + 1,
-        xp: state!.xp, // XP bisa di-reset atau ditambahkan ke level baru
+        currentLevel: nextLevel,
+        xp: remainingXp, // Reset XP ke sisa (atau biarkan menumpuk, tergantung aturan)
+        // Saya asumsikan XP akan dihitung dari 0 lagi setelah naik level
       );
     }
   }
 }
 
-// Extension untuk membuat method copyWith (immutable update)
-extension on UserProfile {
-  UserProfile copyWith({
-    String? name,
-    int? streak,
-    int? totalWordsTaught,
-    int? currentLevel,
-    int? xp,
-  }) {
-    return UserProfile(
-      name: name ?? this.name,
-      streak: streak ?? this.streak,
-      totalWordsTaught: totalWordsTaught ?? this.totalWordsTaught,
-      currentLevel: currentLevel ?? this.currentLevel,
-      xp: xp ?? this.xp,
-    );
-  }
-}
+// Hapus extension karena copyWith sudah dipindahkan ke dalam class UserProfile.
+// extension on UserProfile { ... }

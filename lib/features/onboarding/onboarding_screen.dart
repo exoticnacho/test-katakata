@@ -1,9 +1,8 @@
 // lib/features/onboarding/onboarding_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // PERBAIKAN: Import GoRouter
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
-// Hapus import ini karena tidak digunakan di file ini
-// import 'package:katakata_app/widgets/custom_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,6 +13,13 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+
+  // PERBAIKAN: Tambahkan dispose untuk membersihkan controller
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,28 +38,44 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                3,
-                (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _pageController.page?.round() == index
-                        ? KataKataColors.pinkCeria
-                        : KataKataColors.charcoal.withValues(alpha: 0.3),
+            
+            // PERBAIKAN: Bungkus indikator dengan AnimatedBuilder
+            // Ini akan "mendengarkan" _pageController dan hanya
+            // membangun ulang widget ini saat halaman berubah.
+            AnimatedBuilder(
+              animation: _pageController,
+              builder: (context, child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    3,
+                    (index) {
+                      // Cek apakah controller sudah terpasang
+                      final bool hasClients = _pageController.hasClients;
+                      final double page = hasClients ? (_pageController.page ?? 0.0) : 0.0;
+                      
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: page.round() == index
+                              ? KataKataColors.pinkCeria
+                              : KataKataColors.charcoal.withOpacity(0.3),
+                        ),
+                      );
+                    },
                   ),
-                ),
-              ),
+                );
+              },
             ),
+            
             const SizedBox(height: 30),
-            // Hapus const karena onPressed akan diisi
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/signin');
+                // PERBAIKAN: Gunakan GoRouter untuk navigasi
+                context.go('/signin');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: KataKataColors.pinkCeria,
@@ -69,12 +91,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 20), // Tambahan padding bawah
           ],
         ),
       ),
     );
   }
 
+  // Widget _buildPage tidak berubah
   Widget _buildPage(int index) {
     final titles = ['Belajar Seru', 'Latihan Interaktif', 'Progres Terpantau'];
     final descriptions = [
@@ -91,7 +115,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           height: 150,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: KataKataColors.pinkCeria.withValues(alpha: 0.3),
+            color: KataKataColors.pinkCeria.withOpacity(0.3),
           ),
           child: Center(
             child: Text(
@@ -119,7 +143,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           descriptions[index],
           style: GoogleFonts.poppins(
             fontSize: 16,
-            color: KataKataColors.charcoal.withValues(alpha: 0.7),
+            color: KataKataColors.charcoal.withOpacity(0.7),
           ),
           textAlign: TextAlign.center,
         ),

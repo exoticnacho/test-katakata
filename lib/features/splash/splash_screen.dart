@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
+import 'package:go_router/go_router.dart'; // <-- PERBAIKAN 1: Import GoRouter
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,7 +17,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) { // Pastikan widget masih mounted
-        Navigator.pushReplacementNamed(context, '/onboarding');
+        // PERBAIKAN 2: Ganti Navigator.pushReplacementNamed
+        // Navigator.pushReplacementNamed(context, '/onboarding');
+        context.go('/onboarding'); // Gunakan navigasi GoRouter
       }
     });
   }
@@ -48,6 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
+                // Kode ini (withOpacity) sudah benar, abaikan error linter sebelumnya
                 color: KataKataColors.pinkCeria.withOpacity(0.3),
               ),
               child: Center(
@@ -66,6 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'Belajar Bahasa, Satu Kata Sekaligus!',
               style: GoogleFonts.poppins(
                 fontSize: 16,
+                // Kode ini (withOpacity) sudah benar
                 color: KataKataColors.charcoal.withOpacity(0.7),
               ),
             ),

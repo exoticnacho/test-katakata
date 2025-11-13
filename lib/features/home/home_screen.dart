@@ -1,10 +1,9 @@
 // lib/features/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
-// Hapus import yang tidak digunakan
-// import 'package:katakata_app/core/services/auth_service.dart';
 import 'package:katakata_app/core/services/user_service.dart';
 import 'package:katakata_app/widgets/custom_button.dart';
 import 'package:katakata_app/widgets/mascot_widget.dart';
@@ -29,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 foreground: Paint()
-                  ..shader = const LinearGradient(
+                  ..shader = const LinearGradient( // PERBAIKAN: Tambah const
                     colors: [KataKataColors.pinkCeria, KataKataColors.violetCerah],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
@@ -43,9 +42,9 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/profile');
+              context.push('/profile'); // Navigasi GoRouter
             },
-            icon: Icon(Icons.person_outline, color: KataKataColors.charcoal),
+            icon: const Icon(Icons.person_outline, color: KataKataColors.charcoal),
           ),
         ],
       ),
@@ -58,7 +57,8 @@ class HomeScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: KataKataColors.offWhite,
-                border: Border.all(color: KataKataColors.charcoal.withValues(alpha: 0.1)),
+                // PERBAIKAN: Gunakan .withOpacity()
+                border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
               ),
               child: Row(
                 children: [
@@ -78,7 +78,8 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             LinearProgressIndicator(
               value: userProfile != null ? (userProfile.xp % 1000) / 1000 : 0.0,
-              backgroundColor: KataKataColors.charcoal.withValues(alpha: 0.1),
+              // PERBAIKAN: Gunakan .withOpacity()
+              backgroundColor: KataKataColors.charcoal.withOpacity(0.1),
               valueColor: const AlwaysStoppedAnimation(KataKataColors.kuningCerah),
               minHeight: 8,
             ),
@@ -88,18 +89,17 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 for (int i = 0; i < 5; i++)
                   Icon(
-                    i < 3 ? Icons.star : Icons.star_border,
+                    i < 3 ? Icons.star : Icons.star_border, // Contoh 3/5 bintang
                     color: KataKataColors.kuningCerah,
                     size: 20,
                   ),
               ],
             ),
             const SizedBox(height: 40),
-            // Hapus const karena onPressed akan diisi
             KataKataButton(
               text: 'Mulai Latihan Baru',
               onPressed: () {
-                 Navigator.pushNamed(context, '/lesson');
+                 context.push('/lesson'); // Navigasi GoRouter
               },
             ),
             const SizedBox(height: 30),
@@ -111,7 +111,8 @@ class HomeScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       color: KataKataColors.offWhite,
-                      border: Border.all(color: KataKataColors.charcoal.withValues(alpha: 0.1)),
+                      // PERBAIKAN: Gunakan .withOpacity()
+                      border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
                     ),
                     child: Row(
                       children: [

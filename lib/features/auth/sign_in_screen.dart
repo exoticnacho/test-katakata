@@ -1,11 +1,12 @@
 // lib/features/auth/sign_in_screen.dart
-// ... import ...
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/auth_service.dart';
 import 'package:katakata_app/widgets/input_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// Hapus GoRouter, tidak dipakai lagi di file ini
+// import 'package:go_router/go_router.dart';
 
 class SignInScreen extends ConsumerWidget {
   const SignInScreen({super.key});
@@ -16,7 +17,10 @@ class SignInScreen extends ConsumerWidget {
     final passwordController = TextEditingController();
     final nameController = TextEditingController();
 
-    final authState = ref.watch(isAuthenticatedProvider);
+    // PERBAIKAN: Kita watch 'authProvider' (isLoading)
+    final isLoading = ref.watch(authProvider);
+
+    // Hapus ref.listen, GoRouter sudah menanganinya
 
     return Scaffold(
       backgroundColor: KataKataColors.offWhite,
@@ -27,7 +31,7 @@ class SignInScreen extends ConsumerWidget {
             emailController: emailController,
             passwordController: passwordController,
             nameController: nameController,
-            authState: authState,
+            isLoading: isLoading, // Kirim status isLoading
           ),
         ),
       ),
@@ -39,13 +43,13 @@ class _SignInScreenBody extends StatefulWidget {
   final TextEditingController emailController;
   final TextEditingController passwordController;
   final TextEditingController nameController;
-  final bool authState;
+  final bool isLoading; // Ganti nama dari authState
 
   const _SignInScreenBody({
     required this.emailController,
     required this.passwordController,
     required this.nameController,
-    required this.authState,
+    required this.isLoading, // Terima isLoading
   });
 
   @override
@@ -78,7 +82,7 @@ class _SignInScreenBodyState extends State<_SignInScreenBody> {
                   : 'Mari mulai perjalanan belajar bahasa!',
               style: GoogleFonts.poppins(
                 fontSize: 16,
-                color: KataKataColors.charcoal.withValues(alpha: 0.7), // Ganti dari .withOpacity
+                color: KataKataColors.charcoal.withOpacity(0.7),
               ),
             ),
             const SizedBox(height: 40),
@@ -104,34 +108,29 @@ class _SignInScreenBodyState extends State<_SignInScreenBody> {
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: widget.authState ? null : () async {
+              // PERBAIKAN: onPressed HANYA memanggil login
+              onPressed: widget.isLoading ? null : () async {
                 if (_isLogin) {
                   await ref.read(authProvider.notifier).login(
                         widget.emailController.text,
                         widget.passwordController.text,
                       );
-                  if (ref.read(isAuthenticatedProvider)) {
-                    if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    }
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Login gagal. Email/Password salah.')),
-                      );
-                    }
+                  
+                  // Tampilkan error HANYA jika login gagal
+                  if (context.mounted && !ref.read(isAuthenticatedProvider)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Login gagal. Email/Password salah.')),
+                    );
                   }
+                  
                 } else {
-                  // Simulasi register - hindari print di production
-                  // print('Register: ${widget.nameController.text}, ${widget.emailController.text}, ${widget.passwordController.text}');
+                  // Simulasi register (TODO: buat fungsi register di service)
                   await ref.read(authProvider.notifier).login(
                         widget.emailController.text,
                         widget.passwordController.text,
                       );
-                  if (ref.read(isAuthenticatedProvider) && context.mounted) {
-                     Navigator.pushReplacementNamed(context, '/home');
-                  }
                 }
+                // PERBAIKAN: HAPUS SEMUA NAVIGATOR.PUSH DARI SINI
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: KataKataColors.pinkCeria,
@@ -139,7 +138,7 @@ class _SignInScreenBodyState extends State<_SignInScreenBody> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
-              child: widget.authState
+              child: widget.isLoading // Gunakan isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : Text(
                       _isLogin ? 'Masuk' : 'Daftar Sekarang',
@@ -159,7 +158,7 @@ class _SignInScreenBodyState extends State<_SignInScreenBody> {
                       : 'Sudah punya akun? ',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
-                    color: KataKataColors.charcoal.withValues(alpha: 0.7), // Ganti dari .withOpacity
+                    color: KataKataColors.charcoal.withOpacity(0.7),
                   ),
                 ),
                 GestureDetector(

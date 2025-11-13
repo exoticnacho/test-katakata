@@ -1,12 +1,13 @@
 // lib/features/lesson/lesson_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/lesson_service.dart';
-import 'package:katakata_app/core/services/user_service.dart'; // Tambahkan ini untuk addXp
-import 'package:katakata_app/widgets/custom_button.dart'; // Tambahkan ini
-import 'package:katakata_app/widgets/mascot_widget.dart'; // Tambahkan ini
+import 'package:katakata_app/core/services/user_service.dart';
+import 'package:katakata_app/widgets/custom_button.dart';
+import 'package:katakata_app/widgets/mascot_widget.dart';
 
 class LessonScreen extends ConsumerWidget {
   const LessonScreen({super.key});
@@ -15,11 +16,16 @@ class LessonScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lessonState = ref.watch(lessonProvider);
     final lessonNotifier = ref.read(lessonProvider.notifier);
+    
+    final currentQuestion = lessonState.questions[lessonState.currentIndex];
 
     if (lessonState.lessonCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showLevelUpModal(context, ref);
+         if (ModalRoute.of(context)?.isCurrent == true) {
+            _showLevelUpModal(context, ref);
+         }
       });
+      return const Scaffold(backgroundColor: KataKataColors.offWhite);
     }
 
     return Scaffold(
@@ -43,13 +49,14 @@ class LessonScreen extends ConsumerWidget {
           children: [
             LinearProgressIndicator(
               value: (lessonState.currentIndex + 1) / lessonState.questions.length,
-              backgroundColor: KataKataColors.charcoal.withValues(alpha: 0.1),
+              // PERBAIKAN: Gunakan .withOpacity()
+              backgroundColor: KataKataColors.charcoal.withOpacity(0.1),
               valueColor: const AlwaysStoppedAnimation(KataKataColors.kuningCerah),
               minHeight: 8,
             ),
             const SizedBox(height: 20),
             Text(
-              lessonState.questions[lessonState.currentIndex].text,
+              currentQuestion.text,
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -59,11 +66,24 @@ class LessonScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 30),
             ...List.generate(
-              lessonState.questions[lessonState.currentIndex].options.length,
+              currentQuestion.options.length,
               (index) {
-                final option = lessonState.questions[lessonState.currentIndex].options[index];
+                final option = currentQuestion.options[index];
                 final isSelected = lessonState.selectedOption == option;
-                final isCorrect = option == lessonState.questions[lessonState.currentIndex].correctAnswer;
+                final isCorrect = option == currentQuestion.correctAnswer;
+                
+                // Logika Warna (Sudah diperbaiki di run sebelumnya)
+                Color buttonColor = KataKataColors.offWhite;
+                if (lessonState.answerSubmitted) {
+                    if (isCorrect) {
+                        buttonColor = Colors.green.shade400; // Jawaban benar
+                    } else if (isSelected) {
+                        buttonColor = Colors.red.shade400; // Jawaban salah yang dipilih
+                    }
+                } else if (isSelected) {
+                    // PERBAIKAN: Gunakan .withOpacity()
+                    buttonColor = KataKataColors.kuningCerah.withOpacity(0.7); // Opsi yang dipilih
+                }
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
@@ -72,21 +92,17 @@ class LessonScreen extends ConsumerWidget {
                         ? null
                         : () => lessonNotifier.selectAnswer(option),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: lessonState.answerSubmitted
-                          ? (isCorrect
-                              ? KataKataColors.kuningCerah.withValues(alpha: 0.3)
-                              : isSelected
-                                  ? KataKataColors.charcoal.withValues(alpha: 0.1)
-                                  : null)
-                          : null,
+                      backgroundColor: buttonColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: KataKataColors.charcoal, width: 2), // Menambahkan border
                       ),
+                      elevation: 0, // Desain flat
                     ),
                     child: Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.book_outlined,
                           color: KataKataColors.charcoal,
                           size: 20,
@@ -99,28 +115,20 @@ class LessonScreen extends ConsumerWidget {
                             color: KataKataColors.charcoal,
                           ),
                         ),
+                        const Spacer(), // Pindahkan mascot ke kanan
                         if (lessonState.answerSubmitted && isCorrect)
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const MascotWidget(size: 24), // Tambahkan const
-                              ],
-                            ),
-                          ),
+                          const MascotWidget(size: 24), // Hapus const
                       ],
                     ),
                   ),
                 );
               },
             ),
-            const SizedBox(height: 30),
+            const Spacer(), // Dorong tombol ke bawah
             if (lessonState.answerSubmitted)
-              // Hapus const karena onPressed akan diisi
               KataKataButton(
                 text: lessonState.currentIndex < lessonState.questions.length - 1 ? 'Lanjut' : 'Selesai',
                 onPressed: () {
-                  // Tambah XP jika benar
                   if (lessonState.isCorrect) {
                      ref.read(userProfileProvider.notifier).addXp(10);
                   }
@@ -136,8 +144,9 @@ class LessonScreen extends ConsumerWidget {
   void _showLevelUpModal(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
-        ref.read(lessonProvider.notifier).resetLesson(); // Reset lesson state
+        ref.read(lessonProvider.notifier).resetLesson(); 
 
         return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
@@ -154,7 +163,7 @@ class LessonScreen extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const MascotWidget(size: 64), // Tambahkan const
+              const MascotWidget(size: 64), // Hapus const
               const SizedBox(height: 20),
               Text(
                 'Kamu telah menyelesaikan latihan ini.',
@@ -166,7 +175,7 @@ class LessonScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                '+50 XP',
+                '+50 XP', // XP Tambahan saat selesai
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -178,8 +187,8 @@ class LessonScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context); // Kembali ke Home
+                Navigator.pop(context); // Tutup modal
+                context.go('/home'); // Kembali ke Home (GoRouter)
               },
               child: Text(
                 'Tutup',

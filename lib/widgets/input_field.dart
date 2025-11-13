@@ -26,8 +26,8 @@ class InputField extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         color: KataKataColors.offWhite,
-        // Ganti dari .withOpacity ke .withValues
-        border: Border.all(color: KataKataColors.charcoal.withValues(alpha: 0.2)),
+        // BUG FIX: Mengganti .withValues(alpha: 0.2) menjadi .withOpacity(0.2)
+        border: Border.all(color: KataKataColors.charcoal.withOpacity(0.2)),
       ),
       child: TextFormField(
         controller: controller,

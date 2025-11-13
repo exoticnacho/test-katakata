@@ -1,7 +1,7 @@
 // lib/features/lesson/lesson_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/lesson_service.dart';
@@ -21,9 +21,9 @@ class LessonScreen extends ConsumerWidget {
 
     if (lessonState.lessonCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (ModalRoute.of(context)?.isCurrent == true) {
-            _showLevelUpModal(context, ref);
-         }
+        if (ModalRoute.of(context)?.isCurrent == true) {
+          _showLevelUpModal(context, ref);
+        }
       });
       return const Scaffold(backgroundColor: KataKataColors.offWhite);
     }
@@ -49,7 +49,6 @@ class LessonScreen extends ConsumerWidget {
           children: [
             LinearProgressIndicator(
               value: (lessonState.currentIndex + 1) / lessonState.questions.length,
-              // PERBAIKAN: Gunakan .withOpacity()
               backgroundColor: KataKataColors.charcoal.withOpacity(0.1),
               valueColor: const AlwaysStoppedAnimation(KataKataColors.kuningCerah),
               minHeight: 8,
@@ -72,17 +71,16 @@ class LessonScreen extends ConsumerWidget {
                 final isSelected = lessonState.selectedOption == option;
                 final isCorrect = option == currentQuestion.correctAnswer;
                 
-                // Logika Warna (Sudah diperbaiki di run sebelumnya)
+                // Logika Warna
                 Color buttonColor = KataKataColors.offWhite;
                 if (lessonState.answerSubmitted) {
                     if (isCorrect) {
-                        buttonColor = Colors.green.shade400; // Jawaban benar
+                        buttonColor = Colors.green.shade400; 
                     } else if (isSelected) {
-                        buttonColor = Colors.red.shade400; // Jawaban salah yang dipilih
+                        buttonColor = Colors.red.shade400; 
                     }
                 } else if (isSelected) {
-                    // PERBAIKAN: Gunakan .withOpacity()
-                    buttonColor = KataKataColors.kuningCerah.withOpacity(0.7); // Opsi yang dipilih
+                    buttonColor = KataKataColors.kuningCerah.withOpacity(0.7);
                 }
 
                 return Padding(
@@ -96,16 +94,17 @@ class LessonScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: KataKataColors.charcoal, width: 2), // Menambahkan border
+                        side: const BorderSide(color: KataKataColors.charcoal, width: 2),
                       ),
-                      elevation: 0, // Desain flat
+                      elevation: 0,
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.book_outlined,
-                          color: KataKataColors.charcoal,
-                          size: 20,
+                        // PERBAIKAN ASET: Mengganti Icon standar dengan Image.asset
+                        Image.asset(
+                          'assets/images/icon_lesson_option.png',
+                          width: 20,
+                          height: 20,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -115,16 +114,17 @@ class LessonScreen extends ConsumerWidget {
                             color: KataKataColors.charcoal,
                           ),
                         ),
-                        const Spacer(), // Pindahkan mascot ke kanan
+                        const Spacer(),
                         if (lessonState.answerSubmitted && isCorrect)
-                          const MascotWidget(size: 24), // Hapus const
+                          // PERBAIKAN ASET: Maskot kecil di jawaban benar
+                          const MascotWidget(size: 24, assetName: 'mascot_lesson.png'), 
                       ],
                     ),
                   ),
                 );
               },
             ),
-            const Spacer(), // Dorong tombol ke bawah
+            const Spacer(),
             if (lessonState.answerSubmitted)
               KataKataButton(
                 text: lessonState.currentIndex < lessonState.questions.length - 1 ? 'Lanjut' : 'Selesai',
@@ -146,7 +146,9 @@ class LessonScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        ref.read(lessonProvider.notifier).resetLesson(); 
+        // PERBAIKAN: Pastikan ini dipanggil saat modal pertama kali muncul
+        ref.read(userProfileProvider.notifier).addXp(50);
+        ref.read(lessonProvider.notifier).resetLesson();
 
         return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
@@ -163,10 +165,11 @@ class LessonScreen extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const MascotWidget(size: 64), // Hapus const
+              // PERBAIKAN ASET: Maskot utama di modal
+              const MascotWidget(size: 64, assetName: 'mascot_main.png'), 
               const SizedBox(height: 20),
               Text(
-                'Kamu telah menyelesaikan latihan ini.',
+                'Kamu telah menyelesaikan latihan ini.\nBonus total +50 XP!',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: KataKataColors.charcoal,
@@ -174,26 +177,37 @@ class LessonScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              Text(
-                '+50 XP', // XP Tambahan saat selesai
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: KataKataColors.kuningCerah,
-                ),
+              // PERBAIKAN ASET: Icon XP/Streak
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/images/icon_streak.png', width: 28, height: 28),
+                  const SizedBox(width: 8),
+                   Text(
+                    '+50 XP',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: KataKataColors.kuningCerah,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset('assets/images/icon_streak.png', width: 28, height: 28),
+                ],
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Tutup modal
-                context.go('/home'); // Kembali ke Home (GoRouter)
+                Navigator.pop(context);
+                context.go('/home');
               },
               child: Text(
-                'Tutup',
+                'Kembali ke Beranda',
                 style: GoogleFonts.poppins(
                   color: KataKataColors.pinkCeria,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

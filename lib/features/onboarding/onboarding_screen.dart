@@ -1,8 +1,9 @@
 // lib/features/onboarding/onboarding_screen.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // PERBAIKAN: Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
+import 'package:katakata_app/widgets/mascot_widget.dart'; // Import MascotWidget
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -14,7 +15,6 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
 
-  // PERBAIKAN: Tambahkan dispose untuk membersihkan controller
   @override
   void dispose() {
     _pageController.dispose();
@@ -39,9 +39,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             
-            // PERBAIKAN: Bungkus indikator dengan AnimatedBuilder
-            // Ini akan "mendengarkan" _pageController dan hanya
-            // membangun ulang widget ini saat halaman berubah.
             AnimatedBuilder(
               animation: _pageController,
               builder: (context, child) {
@@ -50,7 +47,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   children: List.generate(
                     3,
                     (index) {
-                      // Cek apakah controller sudah terpasang
                       final bool hasClients = _pageController.hasClients;
                       final double page = hasClients ? (_pageController.page ?? 0.0) : 0.0;
                       
@@ -74,7 +70,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                // PERBAIKAN: Gunakan GoRouter untuk navigasi
                 context.go('/signin');
               },
               style: ElevatedButton.styleFrom(
@@ -91,14 +86,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20), // Tambahan padding bawah
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // Widget _buildPage tidak berubah
   Widget _buildPage(int index) {
     final titles = ['Belajar Seru', 'Latihan Interaktif', 'Progres Terpantau'];
     final descriptions = [
@@ -110,25 +104,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: KataKataColors.pinkCeria.withOpacity(0.3),
-          ),
-          child: Center(
-            child: Text(
-              'B',
-              style: GoogleFonts.poppins(
-                fontSize: 64,
-                fontWeight: FontWeight.bold,
-                color: KataKataColors.charcoal,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 30),
+        // FIX: Menghapus Container lingkaran pink. Hanya sisa MascotWidget dengan ukuran besar (180).
+        const MascotWidget(size: 260, assetName: 'mascot_main.png'), 
+        
+        const SizedBox(height: 10),
         Text(
           titles[index],
           style: GoogleFonts.poppins(
@@ -138,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
           descriptions[index],
           style: GoogleFonts.poppins(

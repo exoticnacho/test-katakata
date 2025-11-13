@@ -1,7 +1,7 @@
 // lib/features/home/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart'; // Import GoRouter
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/user_service.dart';
@@ -17,57 +17,54 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: KataKataColors.offWhite,
+      // Hapus AppBar karena kita akan menggunakan Bottom Navigation Bar di masa depan
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Row(
           children: [
-            Text(
-              'KataKata',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                foreground: Paint()
-                  ..shader = const LinearGradient( // PERBAIKAN: Tambah const
-                    colors: [KataKataColors.pinkCeria, KataKataColors.violetCerah],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 100.0)),
-              ),
+            Image.asset(
+              'assets/images/logo_katakata.png',
+              height: 32, 
             ),
             const SizedBox(width: 8),
-            const MascotWidget(size: 24),
+            const MascotWidget(size: 32, assetName: 'mascot_main.png'), 
           ],
         ),
         actions: [
+          // Navigasi ke Halaman Profil
           IconButton(
             onPressed: () {
-              context.push('/profile'); // Navigasi GoRouter
+              context.push('/profile'); 
             },
-            icon: const Icon(Icons.person_outline, color: KataKataColors.charcoal),
+            // FIX: Menggunakan ikon Avatar/Person standar Material (atau ikon kustom)
+            icon: Image.asset('assets/images/icon_avatar_placeholder.png', width: 32, height: 32),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Container Status Level
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 color: KataKataColors.offWhite,
-                // PERBAIKAN: Gunakan .withOpacity()
                 border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.flag_outlined, color: KataKataColors.charcoal),
-                  const SizedBox(width: 8),
+                  // FIX: Ukuran Ikon Bendera Progress (30)
+                  Image.asset('assets/images/flag_uk.png', width: 30, height: 30),
+                  const SizedBox(width: 12),
                   Text(
                     userProfile != null ? 'Level ${userProfile.currentLevel} - Kosakata Dasar' : 'Memuat...',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: 18, 
                       fontWeight: FontWeight.w600,
                       color: KataKataColors.charcoal,
                     ),
@@ -76,9 +73,10 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
+            
+            // Progress Bar dan Stars
             LinearProgressIndicator(
               value: userProfile != null ? (userProfile.xp % 1000) / 1000 : 0.0,
-              // PERBAIKAN: Gunakan .withOpacity()
               backgroundColor: KataKataColors.charcoal.withOpacity(0.1),
               valueColor: const AlwaysStoppedAnimation(KataKataColors.kuningCerah),
               minHeight: 8,
@@ -95,43 +93,43 @@ class HomeScreen extends ConsumerWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 40),
+            
+            const Spacer(), // Dorong konten ke tengah bawah
+
+            // Tombol Mulai Latihan Baru
             KataKataButton(
               text: 'Mulai Latihan Baru',
               onPressed: () {
-                 context.push('/lesson'); // Navigasi GoRouter
+                 context.push('/lesson');
               },
             ),
             const SizedBox(height: 30),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: KataKataColors.offWhite,
-                      // PERBAIKAN: Gunakan .withOpacity()
-                      border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
-                    ),
-                    child: Row(
-                      children: [
-                        const MascotWidget(size: 48),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            userProfile != null ? 'Halo ${userProfile.name}! Yuk lanjut belajar hari ini!' : 'Memuat...',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: KataKataColors.charcoal,
-                            ),
-                          ),
-                        ),
-                      ],
+            
+            // Kontainer untuk maskot bicara (Speech Bubble)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: KataKataColors.offWhite,
+                border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  // FIX: Ukuran Maskot Speech (60)
+                  const MascotWidget(size: 60, assetName: 'mascot_speech.png'), 
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      userProfile != null ? 'Halo ${userProfile.name}! Yuk lanjut belajar hari ini!' : 'Memuat...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16, 
+                        color: KataKataColors.charcoal,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

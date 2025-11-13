@@ -1,20 +1,19 @@
 // lib/features/profile/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/auth_service.dart';
 import 'package:katakata_app/core/services/user_service.dart';
-// Hapus import yang tidak digunakan
-// import 'package:katakata_app/widgets/custom_button.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userProfile = ref.watch(userProfileProvider);
     final currentUser = ref.watch(userProvider);
+    final userProfile = ref.watch(userProfileProvider);
 
     return Scaffold(
       backgroundColor: KataKataColors.offWhite,
@@ -34,94 +33,114 @@ class ProfileScreen extends ConsumerWidget {
             onPressed: () async {
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) {
-                // Navigasi menggunakan GoRouter akan lebih baik (GoRouter.of(context).go('/signin'))
-                // Untuk saat ini, menggunakan Navigator seperti yang ada di kode
-                Navigator.pushNamedAndRemoveUntil(context, '/signin', (route) => false);
+                context.go('/signin');
               }
             },
-            icon: Icon(Icons.logout_outlined, color: KataKataColors.charcoal),
+            icon: const Icon(
+              Icons.logout,
+              color: KataKataColors.charcoal,
+              size: 28,
+            ),
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Padding(
+
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // === AVATAR DAN NAMA ===
             Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    // BUG FIX: Mengganti .withValues(alpha: 0.3) menjadi .withOpacity(0.3)
                     color: KataKataColors.pinkCeria.withOpacity(0.3),
                   ),
-                  child: Center(
-                    child: Text(
-                      currentUser != null ? currentUser.name.substring(0, 1).toUpperCase() : '?',
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: KataKataColors.charcoal,
-                      ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/mascot_avatar.png',
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  currentUser != null ? currentUser.name : 'Memuat...',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: KataKataColors.charcoal,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currentUser != null ? currentUser.name : 'Memuat...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: KataKataColors.charcoal,
+                      ),
+                    ),
+                    if (currentUser != null && userProfile != null)
+                      Text(
+                        'Level ${userProfile.currentLevel}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: KataKataColors.charcoal.withOpacity(0.7),
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-            Text(
-              'Statistik',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: KataKataColors.charcoal,
+            const SizedBox(height: 40),
+
+            // === TOMBOL KE STATISTIK SCREEN ===
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  context.push('/statistik');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: KataKataColors.kuningCerah,
+                  foregroundColor: KataKataColors.charcoal,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(
+                      color: KataKataColors.charcoal,
+                      width: 2,
+                    ),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/icon_streak.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Lihat Statistik Lengkap',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            if (userProfile != null) ...[
-              _buildStatCard(
-                icon: Icons.star_border,
-                title: 'Streak hari ini:',
-                // BUG FIX: Streak dari 7. Harusnya '7' bukan '7 dari!'
-                value: '${userProfile.streak} hari',
-                context: context,
-              ),
-              const SizedBox(height: 16),
-              _buildStatCard(
-                icon: Icons.menu_book_outlined,
-                title: 'Total kata dipelajari:',
-                value: '${userProfile.totalWordsTaught}',
-                context: context,
-              ),
-              const SizedBox(height: 16),
-              _buildStatCard(
-                icon: Icons.flag_outlined,
-                title: 'Level aktif:',
-                value: 'Level ${userProfile.currentLevel}',
-                context: context,
-              ),
-              const SizedBox(height: 16),
-              _buildStatCard(
-                icon: Icons.star,
-                title: 'Total XP:',
-                value: '${userProfile.xp}',
-                context: context,
-              ),
-            ] else
-              const CircularProgressIndicator(),
+
             const SizedBox(height: 30),
+
+            // === BAGIAN PENCAKAIAN ===
             Text(
               'Pencapaian',
               style: GoogleFonts.poppins(
@@ -131,17 +150,22 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Container( // Tambahkan const
+            Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: KataKataColors.offWhite,
-                // BUG FIX: Mengganti .withValues(alpha: 0.1) menjadi .withOpacity(0.1)
-                border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
+                border: Border.all(
+                  color: KataKataColors.charcoal.withOpacity(0.1),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.star, color: KataKataColors.kuningCerah, size: 24),
+                  Image.asset(
+                    'assets/images/achievement_levelup.png',
+                    width: 24,
+                    height: 24,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     'Level Up!',
@@ -152,73 +176,17 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      // BUG FIX: Mengganti .withValues(alpha: 0.3) menjadi .withOpacity(0.3)
-                      color: KataKataColors.kuningCerah.withOpacity(0.3),
-                    ),
-                    child: Text(
-                      'x3',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: KataKataColors.charcoal,
-                      ),
-                    ),
+                  Image.asset(
+                    'assets/images/badge_x3.png',
+                    width: 32,
+                    height: 32,
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required BuildContext context,
-  }) {
-    return Container( // Tambahkan const
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: KataKataColors.offWhite,
-        // BUG FIX: Mengganti .withValues(alpha: 0.1) menjadi .withOpacity(0.1)
-        border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: KataKataColors.charcoal, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    // BUG FIX: Mengganti .withValues(alpha: 0.7) menjadi .withOpacity(0.7)
-                    color: KataKataColors.charcoal.withOpacity(0.7),
-                  ),
-                ),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: KataKataColors.charcoal,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

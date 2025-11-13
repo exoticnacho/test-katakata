@@ -1,34 +1,26 @@
 // lib/widgets/mascot_widget.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:katakata_app/core/constants/colors.dart';
 
 class MascotWidget extends StatelessWidget {
   final double size;
+  final String assetName; // Tambahkan parameter opsional untuk maskot spesifik
 
-  const MascotWidget({super.key, this.size = 24});
+  const MascotWidget({
+    super.key,
+    this.size = 24,
+    // Default ke maskot utama
+    this.assetName = 'mascot_main.png', 
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Ganti dengan gambar asli nanti
-    return Container(
+    // Menggunakan Image.asset untuk menampilkan maskot dari folder assets/images/
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: KataKataColors.pinkCeria,
-      ),
-      // Perbaikan: Hapus const dari Center karena child-nya menggunakan
-      // perhitungan runtime (size * 0.5)
-      child: Center(
-        child: Text(
-          'B',
-          style: GoogleFonts.poppins( 
-            fontSize: size * 0.5, 
-            color: KataKataColors.charcoal,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+      child: Image.asset(
+        'assets/images/$assetName', // Memuat gambar berdasarkan nama aset
+        fit: BoxFit.contain,
       ),
     );
   }

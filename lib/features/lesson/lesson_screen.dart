@@ -12,10 +12,9 @@ import 'package:katakata_app/widgets/mascot_widget.dart';
 class LessonScreen extends ConsumerWidget {
   const LessonScreen({super.key});
 
-  
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userProfile = ref.watch(userProfileProvider); // Ditonton di sini
+    final userProfile = ref.watch(userProfileProvider);
     final lessonState = ref.watch(lessonProvider);
     final lessonNotifier = ref.read(lessonProvider.notifier);
     
@@ -23,9 +22,9 @@ class LessonScreen extends ConsumerWidget {
 
     if (lessonState.lessonCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (ModalRoute.of(context)?.isCurrent == true) {
-          _showLevelUpModal(context, ref);
-        }
+         if (ModalRoute.of(context)?.isCurrent == true) {
+            _showLevelUpModal(context, ref);
+         }
       });
       return const Scaffold(backgroundColor: KataKataColors.offWhite);
     }
@@ -59,7 +58,7 @@ class LessonScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: KataKataColors.kuningCerah, // Warna Latar Pertanyaan
+                color: KataKataColors.kuningCerah, 
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: KataKataColors.charcoal),
                 boxShadow: [
@@ -82,9 +81,13 @@ class LessonScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 30),
             
-            // Opsi Jawaban
+            // Opsi Jawaban (Memperbaiki masalah kepotong/scroll)
             Expanded(
+              // FIX: Atur shrinkWrap ke true dan primary ke false 
+              // agar Expanded Column yang menampungnya mengontrol tingginya
               child: ListView(
+                shrinkWrap: true, // FIX: Penting agar listview hanya mengambil ruang yang dibutuhkan
+                primary: false,   // FIX: Mencegah listview mengambil seluruh ruang scroll
                 children: List.generate(
                   currentQuestion.options.length,
                   (index) {
@@ -112,7 +115,7 @@ class LessonScreen extends ConsumerWidget {
                     }
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0), 
+                      padding: const EdgeInsets.only(bottom: 16.0),
                       child: GestureDetector(
                         onTap: lessonState.answerSubmitted
                             ? null
@@ -134,6 +137,7 @@ class LessonScreen extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
+                              // Ikon Pilihan (Perlu diganti ke Image.asset)
                               Image.asset(
                                 'assets/images/icon_lesson_option.png',
                                 width: 20,
@@ -166,9 +170,9 @@ class LessonScreen extends ConsumerWidget {
             ),
             
             // Tombol Lanjut (Logika Submit)
+            const SizedBox(height: 20), // Tambahkan ruang, bukan Spacer
             if (lessonState.selectedOption != null)
-              Container(
-                padding: const EdgeInsets.only(top: 20.0),
+              SizedBox(
                 width: double.infinity,
                 child: KataKataButton(
                   text: lessonState.answerSubmitted 
@@ -177,9 +181,9 @@ class LessonScreen extends ConsumerWidget {
                   onPressed: () {
                     if (lessonState.answerSubmitted) {
                        // FASE 2: Lanjut ke pertanyaan berikutnya / Selesai
-                       // FIX: Cek apakah userProfile sudah valid sebelum menambah XP
+                       final xpNotifier = ref.read(userProfileProvider.notifier);
                        if (lessonState.isCorrect && userProfile != null) {
-                          ref.read(userProfileProvider.notifier).addXp(10);
+                          xpNotifier.addXp(10);
                        }
                        lessonNotifier.nextQuestion();
                     } else {
@@ -190,9 +194,8 @@ class LessonScreen extends ConsumerWidget {
                 ),
               )
             else 
-              // Hint: Tombol yang belum aktif
-              Container(
-                padding: const EdgeInsets.only(top: 20.0),
+              // Tombol tidak aktif
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: null,
@@ -202,7 +205,7 @@ class LessonScreen extends ConsumerWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   child: Text(
-                    'Pilih Jawaban Dulu', 
+                    'Pilih Jawaban Dulu',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -220,16 +223,18 @@ class LessonScreen extends ConsumerWidget {
   void _showLevelUpModal(BuildContext context, WidgetRef ref) {
     final userProfile = ref.read(userProfileProvider);
     
-    // FIX: Tambahkan XP hanya jika userProfile tidak null
+    // FIX: Pastikan kita menambah XP dan kemudian mereset lesson
     if (userProfile != null) {
         ref.read(userProfileProvider.notifier).addXp(50); 
     }
+    // HANYA PANGGIL SEKALI DI SINI
     ref.read(lessonProvider.notifier).resetLesson(); 
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        // HAPUS PANGGILAN resetLesson() DI SINI
         return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
           title: Center(
@@ -248,7 +253,7 @@ class LessonScreen extends ConsumerWidget {
               const MascotWidget(size: 64, assetName: 'mascot_main.png'), 
               const SizedBox(height: 20),
               Text(
-                'Kamu telah menyelesaikan latihan ini.\nBonus total +50 XP!',
+                'Kamu telah menyelesaikan latihan ini.',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: KataKataColors.charcoal,
@@ -256,22 +261,13 @@ class LessonScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/icon_streak.png', width: 28, height: 28),
-                  const SizedBox(width: 8),
-                   Text(
-                    '+50 XP',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: KataKataColors.kuningCerah,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Image.asset('assets/images/icon_streak.png', width: 28, height: 28),
-                ],
+              Text(
+                '+50 XP',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: KataKataColors.kuningCerah,
+                ),
               ),
             ],
           ),
@@ -282,10 +278,9 @@ class LessonScreen extends ConsumerWidget {
                 context.go('/home');
               },
               child: Text(
-                'Kembali ke Beranda',
+                'Tutup',
                 style: GoogleFonts.poppins(
                   color: KataKataColors.pinkCeria,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),

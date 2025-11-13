@@ -1,11 +1,9 @@
 // lib/core/services/user_service.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Tambahkan import auth_service.dart
 import 'package:katakata_app/core/services/auth_service.dart';
 
 // Model untuk Data Profil User
 class UserProfile {
-// ... (Model tetap sama)
   final String name;
   final int streak;
   final int totalWordsTaught;
@@ -19,7 +17,7 @@ class UserProfile {
     required this.totalWordsTaught,
     required this.currentLevel,
     required this.xp,
-    this.isLevelingUp = false, 
+    this.isLevelingUp = false, // Default false
   });
 
   // Method copyWith yang diperbarui
@@ -29,7 +27,7 @@ class UserProfile {
     int? totalWordsTaught,
     int? currentLevel,
     int? xp,
-    bool? isLevelingUp,
+    bool? isLevelingUp, 
   }) {
     return UserProfile(
       name: name ?? this.name,
@@ -37,7 +35,7 @@ class UserProfile {
       totalWordsTaught: totalWordsTaught ?? this.totalWordsTaught,
       currentLevel: currentLevel ?? this.currentLevel,
       xp: xp ?? this.xp,
-      isLevelingUp: isLevelingUp ?? this.isLevelingUp,
+      isLevelingUp: isLevelingUp ?? this.isLevelingUp, // FIX: Menggunakan null check pada parameter yang baru
     );
   }
 }
@@ -51,12 +49,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   final Ref ref;
 
   UserProfileNotifier(this.ref) : super(null) {
-    // FIX: Tidak langsung panggil initializeProfile() jika user belum authenticated
-    // Hanya panggil listener yang akan memicu init setelah login (di auth_service)
-    
-    // Namun, untuk demo DUMMY LOGIN, kita panggil di constructor
     initializeProfile(); 
-
     ref.listen<bool>(isAuthenticatedProvider, (bool? previous, bool? next) {
       if (next == true) {
         initializeProfile();
@@ -77,9 +70,9 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
     );
   }
 
-  // Fungsi untuk menambah XP setelah latihan
+  // Fungsi untuk menambah XP setelah latihan (PENGAMANAN NULL)
   void addXp(int xpToAdd) {
-    if (state != null) { // PENGAMANAN NULL
+    if (state != null) { 
       int newXp = state!.xp + xpToAdd;
       int oldLevel = state!.currentLevel;
       
@@ -92,7 +85,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   }
 
   void levelUp() {
-    if (state != null) { // PENGAMANAN NULL
+    if (state != null) { 
       int nextLevel = state!.currentLevel + 1;
       int remainingXp = state!.xp; 
       

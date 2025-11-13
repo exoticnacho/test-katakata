@@ -81,13 +81,11 @@ class LessonScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 30),
             
-            // Opsi Jawaban (Memperbaiki masalah kepotong/scroll)
+            // Opsi Jawaban (Fix Scrollable List Cut Off)
             Expanded(
-              // FIX: Atur shrinkWrap ke true dan primary ke false 
-              // agar Expanded Column yang menampungnya mengontrol tingginya
               child: ListView(
-                shrinkWrap: true, // FIX: Penting agar listview hanya mengambil ruang yang dibutuhkan
-                primary: false,   // FIX: Mencegah listview mengambil seluruh ruang scroll
+                shrinkWrap: true, // FIX: Mengambil ruang yang dibutuhkan saja
+                primary: false,   // FIX: Mencegah error scroll
                 children: List.generate(
                   currentQuestion.options.length,
                   (index) {
@@ -137,14 +135,18 @@ class LessonScreen extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              // Ikon Pilihan (Perlu diganti ke Image.asset)
-                              Image.asset(
-                                'assets/images/icon_lesson_option.png',
-                                width: 20,
-                                height: 20,
+                              // FIX: Menggunakan SizedBox untuk membatasi ukuran ikon
+                              SizedBox(
+                                width: 45, // Lebar yang menampung ikon 32px
+                                height: 45, // Tinggi yang menampung ikon 32px
+                                child: Image.asset(
+                                  'assets/images/icon_lesson_option.png',
+                                  width: 45, // FIX: Ikon 32px
+                                  height: 45,
+                                ),
                               ),
                               const SizedBox(width: 12),
-                              Expanded(
+                              Expanded( // FIX: Expanded memastikan teks mengisi sisa ruang
                                 child: Text(
                                   option,
                                   style: GoogleFonts.poppins(
@@ -170,7 +172,7 @@ class LessonScreen extends ConsumerWidget {
             ),
             
             // Tombol Lanjut (Logika Submit)
-            const SizedBox(height: 20), // Tambahkan ruang, bukan Spacer
+            const SizedBox(height: 20), 
             if (lessonState.selectedOption != null)
               SizedBox(
                 width: double.infinity,
@@ -181,9 +183,8 @@ class LessonScreen extends ConsumerWidget {
                   onPressed: () {
                     if (lessonState.answerSubmitted) {
                        // FASE 2: Lanjut ke pertanyaan berikutnya / Selesai
-                       final xpNotifier = ref.read(userProfileProvider.notifier);
                        if (lessonState.isCorrect && userProfile != null) {
-                          xpNotifier.addXp(10);
+                          ref.read(userProfileProvider.notifier).addXp(10);
                        }
                        lessonNotifier.nextQuestion();
                     } else {
@@ -194,8 +195,8 @@ class LessonScreen extends ConsumerWidget {
                 ),
               )
             else 
-              // Tombol tidak aktif
-              SizedBox(
+            // Tombol tidak aktif
+            SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: null,
@@ -223,18 +224,17 @@ class LessonScreen extends ConsumerWidget {
   void _showLevelUpModal(BuildContext context, WidgetRef ref) {
     final userProfile = ref.read(userProfileProvider);
     
-    // FIX: Pastikan kita menambah XP dan kemudian mereset lesson
+    // XP Bonus diberikan HANYA sekali di sini
     if (userProfile != null) {
         ref.read(userProfileProvider.notifier).addXp(50); 
     }
-    // HANYA PANGGIL SEKALI DI SINI
     ref.read(lessonProvider.notifier).resetLesson(); 
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        // HAPUS PANGGILAN resetLesson() DI SINI
+        // HAPUS PANGGILAN resetLesson() DI SINI (Penyebab Crash)
         return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
           title: Center(

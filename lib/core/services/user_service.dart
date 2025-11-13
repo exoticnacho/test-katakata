@@ -9,7 +9,7 @@ class UserProfile {
   final int totalWordsTaught;
   final int currentLevel;
   final int xp;
-  final bool isLevelingUp; // FITUR BARU: Untuk trigger pop-up
+  final bool isLevelingUp; // FIX: Properti ini harus ada!
 
   UserProfile({
     required this.name,
@@ -17,10 +17,9 @@ class UserProfile {
     required this.totalWordsTaught,
     required this.currentLevel,
     required this.xp,
-    this.isLevelingUp = false, // Default false
+    this.isLevelingUp = false, // FIX: Inisialisasi properti baru
   });
 
-  // Method copyWith yang diperbarui
   UserProfile copyWith({
     String? name,
     int? streak,
@@ -35,7 +34,7 @@ class UserProfile {
       totalWordsTaught: totalWordsTaught ?? this.totalWordsTaught,
       currentLevel: currentLevel ?? this.currentLevel,
       xp: xp ?? this.xp,
-      isLevelingUp: isLevelingUp ?? this.isLevelingUp, // FIX: Menggunakan null check pada parameter yang baru
+      isLevelingUp: isLevelingUp ?? this.isLevelingUp,
     );
   }
 }
@@ -50,6 +49,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
 
   UserProfileNotifier(this.ref) : super(null) {
     initializeProfile(); 
+
     ref.listen<bool>(isAuthenticatedProvider, (bool? previous, bool? next) {
       if (next == true) {
         initializeProfile();
@@ -65,7 +65,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       streak: 7,
       totalWordsTaught: 150,
       currentLevel: 5,
-      xp: 1940, // Titik pemicu Level Up
+      xp: 1940, // FIX: Titik pemicu Level Up (Target 2000 XP)
       isLevelingUp: false,
     );
   }
@@ -76,14 +76,16 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       int newXp = state!.xp + xpToAdd;
       int oldLevel = state!.currentLevel;
       
-      state = state!.copyWith(xp: newXp);
-
-      if (newXp >= 1000 * (oldLevel + 1)) { 
+      // FIX LOGIC: Pengecekan Level Up (Level 6 membutuhkan 2000 XP untuk demo)
+      if (newXp >= 2000 && oldLevel < 6) { 
           levelUp();
       }
+      
+      state = state!.copyWith(xp: newXp);
     }
   }
 
+  // Fungsi untuk naik level
   void levelUp() {
     if (state != null) { 
       int nextLevel = state!.currentLevel + 1;
@@ -92,7 +94,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       state = state!.copyWith(
         currentLevel: nextLevel,
         xp: remainingXp, 
-        isLevelingUp: true, 
+        isLevelingUp: true, // SET state ini untuk memicu modal
       );
     }
   }

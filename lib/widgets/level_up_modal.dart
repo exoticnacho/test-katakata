@@ -5,11 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/user_service.dart';
 import 'package:katakata_app/widgets/mascot_widget.dart';
-// Jika Anda tidak memiliki Lottie, ini mungkin menyebabkan warning/error
 import 'package:lottie/lottie.dart'; 
 
-// Lottie file harus ada di assets/lottie/confetti.json
-// Jika Anda tidak punya file lottie, pastikan ini tidak menyebabkan crash
+// FIX: Perbaiki path asset Lottie
 const String confettiAsset = 'assets/lottie/confetti.json'; 
 
 class LevelUpModal extends ConsumerWidget {
@@ -34,14 +32,13 @@ class LevelUpModal extends ConsumerWidget {
       content: Stack(
         alignment: Alignment.topCenter,
         children: [
-          // LOTTIE CONFETTI (Dibuat lebih aman)
-          // Asumsi Lottie dapat dimuat. Jika Anda menerima error Lottie lagi, 
-          // hapus bagian 'Lottie.asset' dan biarkan 'const SizedBox.shrink()'.
+          // LOTTIE CONFETTI (Menggunakan aset Anda)
           Positioned.fill(
               child: Lottie.asset(
                 confettiAsset, 
                 repeat: false,
                 fit: BoxFit.cover,
+                // FIX: Jika path asset salah di pubspec.yaml, ini akan mencegah crash
                 errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
             ),

@@ -61,13 +61,13 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   }
 
   void initializeProfile() {
-    // FIX: Mulai dari Level 1 dengan XP dekat ambang batas Level 2 (1000 XP)
+    // FIX: Mulai dari Level 1 dengan XP 0 agar naik Level setelah Stage 10
     state = UserProfile(
       name: 'Pengguna KataKata',
-      streak: 0, // Mulai streak dari 0
+      streak: 0, 
       totalWordsTaught: 0,
-      currentLevel: 1, // MULAI DARI LEVEL 1
-      xp: 940, // XP awal
+      currentLevel: 1, 
+      xp: 0, // <-- UBAH XP AWAL KE 0
       isLevelingUp: false,
     );
   }
@@ -78,11 +78,16 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       int newXp = state!.xp + xpToAdd;
       int oldLevel = state!.currentLevel;
       
-      // LOGIC LEVEL UP (Target 1000 XP untuk Level 2)
-      if (newXp >= 1000 && oldLevel < 2) { // Ambang Level 2
+      // Hitung ambang batas Level berikutnya: Level N+1 butuh N * 1000 XP
+      int requiredXpForNextLevel = oldLevel * 1000;
+      
+      // LOGIC LEVEL UP (Sekarang Universal)
+      if (newXp >= requiredXpForNextLevel) { 
+          // Panggil levelUp() sebelum mengupdate state XP
           levelUp();
       }
       
+      // Update XP. Jika levelUp() dipanggil, level sudah naik.
       state = state!.copyWith(xp: newXp);
     }
   }

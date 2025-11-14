@@ -15,6 +15,7 @@ import 'package:katakata_app/features/lesson/lesson_screen.dart';
 import 'package:katakata_app/features/profile/profile_screen.dart';
 import 'package:katakata_app/features/statistics/statistics_screen.dart';
 import 'package:katakata_app/widgets/level_up_modal.dart'; // Tetap di sini
+import 'package:katakata_app/features/lesson/stage_selection_screen.dart';
 
 // FIX: GlobalKey untuk GoRouter
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -58,7 +59,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       
-      GoRoute(path: '/lesson', builder: (context, state) => const LessonScreen()),
+        GoRoute(
+        path: '/stages',
+        builder: (context, state) => const StageSelectionScreen(),
+      ),
+        GoRoute(
+        path: '/lesson/:stageNumber',
+        builder: (context, state) {
+          final stageNumber = int.tryParse(state.pathParameters['stageNumber'] ?? '1') ?? 1;
+          return LessonScreen(stageNumber: stageNumber);
+        },
+      ),
     ],
   );
 });

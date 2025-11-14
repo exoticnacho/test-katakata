@@ -58,28 +58,34 @@ class LessonState {
 }
 
 // StateNotifierProvider
-final lessonProvider = StateNotifierProvider<LessonNotifier, LessonState>((ref) {
-  // FIX: Passing ref ke LessonNotifier agar bisa mengakses userProvider
-  return LessonNotifier(ref); 
+final lessonProvider = StateNotifierProvider.family<LessonNotifier, LessonState, int>((ref, stageNumber) { 
+  return LessonNotifier(ref, stageNumber); 
 });
 
 class LessonNotifier extends StateNotifier<LessonState> {
   final Ref ref;
+  final int stageNumber;
 
-  LessonNotifier(this.ref) : super(_initialState(ref));
+  LessonNotifier(this.ref, this.stageNumber) : super(_initialState(ref, stageNumber));
 
-  // FIX: Fungsi statis untuk mendapatkan state awal berdasarkan Level User
-  static LessonState _initialState(Ref ref) {
-    // Dapatkan Level User saat ini (default ke Level 1 jika null)
-    final currentLevel = ref.read(userProfileProvider)?.currentLevel ?? 1;
-    
-    // Pilih pertanyaan berdasarkan Level. Jika Level 5, ambil Level 5.
-    // Jika level > 5 (misalnya 6, 7), kita ambil pertanyaan Level 5 sebagai fallback.
-    final levelKey = questionsByLevel.containsKey(currentLevel) 
+  // UBAH _initialState untuk menerima stageNumber dan menghitung Level & Stage
+  static LessonState _initialState(Ref ref, int continuousStageNumber) {
+    // Hitung Level berdasarkan Stage: (continuousStageNumber - 1) / 10 + 1
+    final currentLevel = ((continuousStageNumber - 1) ~/ 10) + 1;
+    // Hitung Stage Lokal: (continuousStageNumber - 1) % 10 + 1
+    final localStage = ((continuousStageNumber - 1) % 10) + 1;
+
+    // Fallback ke Level 6 jika StageNumber terlalu tinggi
+    final levelKey = questionsByLevelAndStage.containsKey(currentLevel) 
         ? currentLevel
-        : (currentLevel > 5 ? 5 : 1); // Fallback ke Level 5 jika Level > 5
+        : 6; 
     
-    final initialQuestions = questionsByLevel[levelKey] ?? level1Questions;
+    final stageMap = questionsByLevelAndStage[levelKey]!;
+    
+    // Ambil pertanyaan berdasarkan Stage Lokal
+    final initialQuestions = stageMap.containsKey(localStage)
+        ? stageMap[localStage]!
+        : stageMap[1]!; // Fallback ke Stage 1 jika ada kesalahan stage lokal
 
     return LessonState(
       questions: initialQuestions,
@@ -130,6 +136,6 @@ class LessonNotifier extends StateNotifier<LessonState> {
 
   void resetLesson() {
     // FIX: Menggunakan _initialState yang baru untuk reset yang benar
-    state = _initialState(ref);
+    state = _initialState(ref, stageNumber); // <-- GUNAKAN stageNumber
   }
 }

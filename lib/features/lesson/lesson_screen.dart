@@ -11,15 +11,22 @@ import 'package:katakata_app/widgets/level_up_modal.dart';
 import 'package:katakata_app/widgets/mascot_widget.dart';
 
 class LessonScreen extends ConsumerWidget {
-  const LessonScreen({super.key});
+  final int stageNumber;
+
+  const LessonScreen({super.key, required this.stageNumber});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfile = ref.watch(userProfileProvider);
-    final lessonState = ref.watch(lessonProvider);
-    final lessonNotifier = ref.read(lessonProvider.notifier);
+    // UBAH: Gunakan .family dan berikan stageNumber
+    final lessonState = ref.watch(lessonProvider(stageNumber));
+    final lessonNotifier = ref.read(lessonProvider(stageNumber).notifier);
     
     final currentQuestion = lessonState.questions[lessonState.currentIndex];
+    
+    // Menghitung Level Lokal dan Stage Lokal untuk judul
+    final currentLevel = ((stageNumber - 1) ~/ 10) + 1;
+    final localStage = ((stageNumber - 1) % 10) + 1;
 
     if (lessonState.lessonCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -30,15 +37,22 @@ class LessonScreen extends ConsumerWidget {
       return const Scaffold(backgroundColor: KataKataColors.offWhite);
     }
 
-    return Scaffold(
+   return Scaffold(
       backgroundColor: KataKataColors.offWhite,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false, // <-- TAMBAHKAN BARIS INI
+        // START: IMPLEMENTASI TOMBOL KELUAR
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: KataKataColors.charcoal),
+          onPressed: () => _showExitConfirmationDialog(context),
+        ),
+        // END: IMPLEMENTASI TOMBOL KELUAR
         title: Text(
-          'Latihan',
+          'Latihan Level $currentLevel - Stage $localStage', // Judul Dinamis
           style: GoogleFonts.poppins(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: KataKataColors.charcoal,
           ),
@@ -184,7 +198,7 @@ class LessonScreen extends ConsumerWidget {
                   onPressed: () {
                     if (lessonState.answerSubmitted) {
                        if (lessonState.isCorrect && userProfile != null) {
-                          ref.read(userProfileProvider.notifier).addXp(10);
+                          ref.read(userProfileProvider.notifier).addXp(10); // 10 XP per soal benar
                        }
                        lessonNotifier.nextQuestion();
                     } else {
@@ -220,50 +234,107 @@ class LessonScreen extends ConsumerWidget {
     );
   }
 
+  // Fungsi untuk menampilkan dialog konfirmasi keluar
+  void _showExitConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: KataKataColors.offWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: KataKataColors.charcoal, width: 2),
+        ),
+        title: Text(
+          'Keluar Latihan?',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: KataKataColors.charcoal,
+          ),
+        ),
+        content: Text(
+          'Anda belum menyelesaikan stage ini. XP dari jawaban benar yang sudah Anda kumpulkan akan tersimpan, tetapi Anda akan diarahkan kembali ke Stage Selection.',
+          style: GoogleFonts.poppins(color: KataKataColors.charcoal),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Lanjutkan Latihan',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                color: KataKataColors.violetCerah,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Tutup dialog
+              // Navigasi kembali ke Stage Selection
+              context.go('/stages'); 
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Keluar',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // FIX: Mengubah fungsi lama _showLevelUpModal menjadi handler sequencing
   void _handleLessonCompletion(BuildContext context, WidgetRef ref) {
     final userProfileNotifier = ref.read(userProfileProvider.notifier);
-    final lessonNotifier = ref.read(lessonProvider.notifier);
+    final lessonNotifier = ref.read(lessonProvider(stageNumber).notifier); // FIX: Gunakan stageNumber
     
-    // 1. Tambahkan XP Sesi dan Reset Lesson STATE (tanpa pop-up Level Up)
+    // 1. Tambahkan XP Sesi (Bonus 100 XP)
     final userProfileBefore = ref.read(userProfileProvider);
-    final bool willLevelUp = userProfileBefore != null && userProfileBefore.xp + 50 >= 2000;
     
     if (userProfileBefore != null) {
-        userProfileNotifier.addXp(50); // Tambahkan XP Sesi
+        userProfileNotifier.addXp(100); // <-- XP BONUS 100
     }
     lessonNotifier.resetLesson(); // Reset Lesson State
     
+    // GANTI LOGIC LEVEL UP: Ambil status Level Up dari state terbaru
+    final bool didLevelUp = ref.read(userProfileProvider)?.isLevelingUp == true; 
+
     // 2. Tampilkan Modal "Latihan Selesai"
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return _buildLessonCompleteModalContent(context, willLevelUp);
+        return _buildLessonCompleteModalContent(context, didLevelUp); 
       },
     ).then((_) {
         // 3. SETELAH Modal "Latihan Selesai" DITUTUP (user klik Lihat Level Up!)
         
         // Cek status Level Up
-        if (willLevelUp) {
+        if (didLevelUp) {
             // 4. Tampilkan Modal Level Up
             showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => LevelUpModal(newLevel: userProfileNotifier.state?.currentLevel ?? 6),
+                builder: (context) => LevelUpModal(newLevel: userProfileNotifier.state?.currentLevel ?? 2),
             ).then((__) {
-                // 5. Setelah Modal Level Up ditutup, baru navigasi ke Home
+                // 5. Navigasi ke Home setelah Level Up selesai
                 context.go('/home');
             });
         } else {
-            // Jika tidak ada Level Up, langsung navigasi ke Home
-            context.go('/home');
+            // Jika tidak ada Level Up, navigasi kembali ke Stage Selection
+            context.go('/stages'); 
         }
     });
   }
   
   // Widget Modal "Latihan Selesai" (Content)
   Widget _buildLessonCompleteModalContent(BuildContext context, bool isLevelUp) {
+     final currentLevel = ((stageNumber - 1) ~/ 10) + 1;
+     final localStage = ((stageNumber - 1) % 10) + 1;
+     
      return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
           title: Center(
@@ -283,8 +354,8 @@ class LessonScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               Text(
                 isLevelUp 
-                    ? 'Level Up Menanti!' // Pesan hint untuk Level Up
-                    : 'Kamu telah menyelesaikan latihan ini.',
+                    ? 'Level Up Menanti!' 
+                    : 'Kamu telah menyelesaikan Stage $localStage di Level $currentLevel.', 
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: KataKataColors.charcoal,
@@ -293,7 +364,7 @@ class LessonScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                '+50 XP',
+                '+100 XP', // <-- XP BONUS 100
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -308,7 +379,7 @@ class LessonScreen extends ConsumerWidget {
                 Navigator.pop(context); // Tutup modal saat ini. Trigger .then()
               },
               child: Text(
-                isLevelUp ? 'Lihat Level Up!' : 'Tutup',
+                isLevelUp ? 'Lihat Level Up!' : 'Lanjut ke Stage', // <-- GANTI TEKS TOMBOL
                 style: GoogleFonts.poppins(
                   color: KataKataColors.pinkCeria,
                   fontWeight: FontWeight.bold,

@@ -9,7 +9,7 @@ class UserProfile {
   final int totalWordsTaught;
   final int currentLevel;
   final int xp;
-  final bool isLevelingUp; // FIX: Properti ini harus ada!
+  final bool isLevelingUp; 
 
   UserProfile({
     required this.name,
@@ -17,7 +17,7 @@ class UserProfile {
     required this.totalWordsTaught,
     required this.currentLevel,
     required this.xp,
-    this.isLevelingUp = false, // FIX: Inisialisasi properti baru
+    this.isLevelingUp = false, 
   });
 
   UserProfile copyWith({
@@ -48,6 +48,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   final Ref ref;
 
   UserProfileNotifier(this.ref) : super(null) {
+    // FIX: Menggunakan Level 1 dan XP 940 untuk simulasi
     initializeProfile(); 
 
     ref.listen<bool>(isAuthenticatedProvider, (bool? previous, bool? next) {
@@ -60,12 +61,13 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
   }
 
   void initializeProfile() {
+    // FIX: Mulai dari Level 1 dengan XP dekat ambang batas Level 2 (1000 XP)
     state = UserProfile(
       name: 'Pengguna KataKata',
-      streak: 7,
-      totalWordsTaught: 150,
-      currentLevel: 5,
-      xp: 1940, // FIX: Titik pemicu Level Up (Target 2000 XP)
+      streak: 0, // Mulai streak dari 0
+      totalWordsTaught: 0,
+      currentLevel: 1, // MULAI DARI LEVEL 1
+      xp: 940, // XP awal
       isLevelingUp: false,
     );
   }
@@ -76,8 +78,8 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
       int newXp = state!.xp + xpToAdd;
       int oldLevel = state!.currentLevel;
       
-      // FIX LOGIC: Pengecekan Level Up (Level 6 membutuhkan 2000 XP untuk demo)
-      if (newXp >= 2000 && oldLevel < 6) { 
+      // LOGIC LEVEL UP (Target 1000 XP untuk Level 2)
+      if (newXp >= 1000 && oldLevel < 2) { // Ambang Level 2
           levelUp();
       }
       
@@ -85,7 +87,6 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
     }
   }
 
-  // Fungsi untuk naik level
   void levelUp() {
     if (state != null) { 
       int nextLevel = state!.currentLevel + 1;

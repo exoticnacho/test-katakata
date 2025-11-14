@@ -1,5 +1,6 @@
 // lib/app/app.dart
 import 'package:flutter/material.dart';
+// FIX: Imports localization
 import 'package:flutter_localizations/flutter_localizations.dart'; 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,9 +14,9 @@ import 'package:katakata_app/features/home/home_screen.dart';
 import 'package:katakata_app/features/lesson/lesson_screen.dart';
 import 'package:katakata_app/features/profile/profile_screen.dart';
 import 'package:katakata_app/features/statistics/statistics_screen.dart';
-import 'package:katakata_app/widgets/level_up_modal.dart'; 
+import 'package:katakata_app/widgets/level_up_modal.dart'; // Tetap di sini
 
-// FIX: GlobalKey untuk mendapatkan konteks dialog
+// FIX: GlobalKey untuk GoRouter
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -69,20 +70,8 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
     
-    // LISTENER GLOBAL UNTUK LEVEL UP
-    ref.listen<UserProfile?>(userProfileProvider, (previous, next) {
-        if (next != null && next.isLevelingUp) {
-            // FIX: Menggunakan rootNavigatorKey.currentContext yang terjamin memiliki MaterialLocalizations
-            final dialogContext = rootNavigatorKey.currentContext;
-            
-            if (dialogContext != null) {
-                showDialog(
-                    context: dialogContext,
-                    builder: (context) => LevelUpModal(newLevel: next.currentLevel),
-                );
-            }
-        }
-    });
+    // FIX: HAPUS GLOBAL LISTENER DI SINI. Logic Level Up sekarang ditangani sepenuhnya
+    //      di LessonScreen untuk sequencing yang benar.
 
     return MaterialApp.router(
       title: 'KataKata',

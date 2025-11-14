@@ -7,6 +7,7 @@ import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/lesson_service.dart';
 import 'package:katakata_app/core/services/user_service.dart';
 import 'package:katakata_app/widgets/custom_button.dart';
+import 'package:katakata_app/widgets/level_up_modal.dart';
 import 'package:katakata_app/widgets/mascot_widget.dart';
 
 class LessonScreen extends ConsumerWidget {
@@ -23,7 +24,7 @@ class LessonScreen extends ConsumerWidget {
     if (lessonState.lessonCompleted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
          if (ModalRoute.of(context)?.isCurrent == true) {
-            _showLevelUpModal(context, ref);
+            _handleLessonCompletion(context, ref); 
          }
       });
       return const Scaffold(backgroundColor: KataKataColors.offWhite);
@@ -81,11 +82,11 @@ class LessonScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 30),
             
-            // Opsi Jawaban (Fix Scrollable List Cut Off)
+            // Opsi Jawaban (Fix Icon Size)
             Expanded(
               child: ListView(
-                shrinkWrap: true, // FIX: Mengambil ruang yang dibutuhkan saja
-                primary: false,   // FIX: Mencegah error scroll
+                shrinkWrap: true, 
+                primary: false,   
                 children: List.generate(
                   currentQuestion.options.length,
                   (index) {
@@ -135,18 +136,18 @@ class LessonScreen extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              // FIX: Menggunakan SizedBox untuk membatasi ukuran ikon
+                              // FIX: Menggunakan SizedBox 45x45 untuk Ikon
                               SizedBox(
-                                width: 45, // Lebar yang menampung ikon 32px
-                                height: 45, // Tinggi yang menampung ikon 32px
+                                width: 45, 
+                                height: 45, 
                                 child: Image.asset(
                                   'assets/images/icon_lesson_option.png',
-                                  width: 45, // FIX: Ikon 32px
+                                  width: 45, 
                                   height: 45,
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Expanded( // FIX: Expanded memastikan teks mengisi sisa ruang
+                              Expanded( 
                                 child: Text(
                                   option,
                                   style: GoogleFonts.poppins(
@@ -182,13 +183,11 @@ class LessonScreen extends ConsumerWidget {
                       : 'Cek Jawaban',
                   onPressed: () {
                     if (lessonState.answerSubmitted) {
-                       // FASE 2: Lanjut ke pertanyaan berikutnya / Selesai
                        if (lessonState.isCorrect && userProfile != null) {
                           ref.read(userProfileProvider.notifier).addXp(10);
                        }
                        lessonNotifier.nextQuestion();
                     } else {
-                       // FASE 1: Cek Jawaban -> Panggil submitAnswer
                        lessonNotifier.submitAnswer(); 
                     }
                   },
@@ -221,21 +220,51 @@ class LessonScreen extends ConsumerWidget {
     );
   }
 
-  void _showLevelUpModal(BuildContext context, WidgetRef ref) {
-    final userProfile = ref.read(userProfileProvider);
+  // FIX: Mengubah fungsi lama _showLevelUpModal menjadi handler sequencing
+  void _handleLessonCompletion(BuildContext context, WidgetRef ref) {
+    final userProfileNotifier = ref.read(userProfileProvider.notifier);
+    final lessonNotifier = ref.read(lessonProvider.notifier);
     
-    // XP Bonus diberikan HANYA sekali di sini
-    if (userProfile != null) {
-        ref.read(userProfileProvider.notifier).addXp(50); 
+    // 1. Tambahkan XP Sesi dan Reset Lesson STATE (tanpa pop-up Level Up)
+    final userProfileBefore = ref.read(userProfileProvider);
+    final bool willLevelUp = userProfileBefore != null && userProfileBefore.xp + 50 >= 2000;
+    
+    if (userProfileBefore != null) {
+        userProfileNotifier.addXp(50); // Tambahkan XP Sesi
     }
-    ref.read(lessonProvider.notifier).resetLesson(); 
-
+    lessonNotifier.resetLesson(); // Reset Lesson State
+    
+    // 2. Tampilkan Modal "Latihan Selesai"
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        // HAPUS PANGGILAN resetLesson() DI SINI (Penyebab Crash)
-        return AlertDialog(
+        return _buildLessonCompleteModalContent(context, willLevelUp);
+      },
+    ).then((_) {
+        // 3. SETELAH Modal "Latihan Selesai" DITUTUP (user klik Lihat Level Up!)
+        
+        // Cek status Level Up
+        if (willLevelUp) {
+            // 4. Tampilkan Modal Level Up
+            showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => LevelUpModal(newLevel: userProfileNotifier.state?.currentLevel ?? 6),
+            ).then((__) {
+                // 5. Setelah Modal Level Up ditutup, baru navigasi ke Home
+                context.go('/home');
+            });
+        } else {
+            // Jika tidak ada Level Up, langsung navigasi ke Home
+            context.go('/home');
+        }
+    });
+  }
+  
+  // Widget Modal "Latihan Selesai" (Content)
+  Widget _buildLessonCompleteModalContent(BuildContext context, bool isLevelUp) {
+     return AlertDialog(
           backgroundColor: KataKataColors.offWhite,
           title: Center(
             child: Text(
@@ -253,7 +282,9 @@ class LessonScreen extends ConsumerWidget {
               const MascotWidget(size: 64, assetName: 'mascot_main.png'), 
               const SizedBox(height: 20),
               Text(
-                'Kamu telah menyelesaikan latihan ini.',
+                isLevelUp 
+                    ? 'Level Up Menanti!' // Pesan hint untuk Level Up
+                    : 'Kamu telah menyelesaikan latihan ini.',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: KataKataColors.charcoal,
@@ -274,19 +305,17 @@ class LessonScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
-                context.go('/home');
+                Navigator.pop(context); // Tutup modal saat ini. Trigger .then()
               },
               child: Text(
-                'Tutup',
+                isLevelUp ? 'Lihat Level Up!' : 'Tutup',
                 style: GoogleFonts.poppins(
                   color: KataKataColors.pinkCeria,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ],
         );
-      },
-    );
   }
 }

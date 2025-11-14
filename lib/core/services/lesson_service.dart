@@ -1,7 +1,10 @@
 // lib/core/services/lesson_service.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// FIX: Hapus data mock lama dan import data dari file baru
+import 'package:katakata_app/core/data/mock_questions.dart';
+import 'package:katakata_app/core/services/user_service.dart'; // Digunakan untuk mendapatkan level user
 
-// Model untuk Soal
+// Model untuk Soal (Tetap sama)
 class Question {
   final String id;
   final String text;
@@ -16,29 +19,7 @@ class Question {
   });
 }
 
-// Data dummy untuk latihan (nanti bisa dari API/Firebase)
-final List<Question> mockQuestions = [
-  Question(
-    id: '1',
-    text: 'Bagaimana mengajukan \'terima kasih\' dalam bahasa Spanyol?',
-    options: ['Hola', 'Adiós', 'Gracias'],
-    correctAnswer: 'Gracias',
-  ),
-  Question(
-    id: '2',
-    text: 'Apa arti \'Hola\' dalam bahasa Indonesia?',
-    options: ['Selamat tinggal', 'Terima kasih', 'Halo'],
-    correctAnswer: 'Halo',
-  ),
-  Question(
-    id: '3',
-    text: 'Kata \'Gato\' dalam bahasa Spanyol berarti?',
-    options: ['Anjing', 'Kucing', 'Burung'],
-    correctAnswer: 'Kucing',
-  ),
-];
-
-// Model untuk State Latihan
+// Model untuk State Latihan (Tetap sama)
 class LessonState {
   final List<Question> questions;
   final int currentIndex;
@@ -76,44 +57,57 @@ class LessonState {
   }
 }
 
-// StateNotifierProvider untuk mengelola state latihan
+// StateNotifierProvider
 final lessonProvider = StateNotifierProvider<LessonNotifier, LessonState>((ref) {
-  return LessonNotifier();
+  // FIX: Passing ref ke LessonNotifier agar bisa mengakses userProvider
+  return LessonNotifier(ref); 
 });
 
 class LessonNotifier extends StateNotifier<LessonState> {
-  LessonNotifier() : super(
-    LessonState(
-      questions: mockQuestions,
+  final Ref ref;
+
+  LessonNotifier(this.ref) : super(_initialState(ref));
+
+  // FIX: Fungsi statis untuk mendapatkan state awal berdasarkan Level User
+  static LessonState _initialState(Ref ref) {
+    // Dapatkan Level User saat ini (default ke Level 1 jika null)
+    final currentLevel = ref.read(userProfileProvider)?.currentLevel ?? 1;
+    
+    // Pilih pertanyaan berdasarkan Level. Jika Level 5, ambil Level 5.
+    // Jika level > 5 (misalnya 6, 7), kita ambil pertanyaan Level 5 sebagai fallback.
+    final levelKey = questionsByLevel.containsKey(currentLevel) 
+        ? currentLevel
+        : (currentLevel > 5 ? 5 : 1); // Fallback ke Level 5 jika Level > 5
+    
+    final initialQuestions = questionsByLevel[levelKey] ?? level1Questions;
+
+    return LessonState(
+      questions: initialQuestions,
       currentIndex: 0,
       selectedOption: null,
       answerSubmitted: false,
       isCorrect: false,
       lessonCompleted: false,
-    )
-  );
+    );
+  }
 
   void selectAnswer(String option) {
     if (state.answerSubmitted) return; 
-    
-    // Simpan pilihan dan status koreksi sementara
+
     final currentQuestion = state.questions[state.currentIndex];
     final isCorrect = option == currentQuestion.correctAnswer;
     
     state = state.copyWith(
       selectedOption: option,
-      isCorrect: isCorrect, // Status ini berguna untuk UI saat ini
+      isCorrect: isCorrect,
     );
   }
 
-  // FIX: Metode baru untuk memproses jawaban
   void submitAnswer() {
      if (state.selectedOption == null || state.answerSubmitted) return;
      
-     // Gunakan isCorrect yang sudah dihitung di selectAnswer
      state = state.copyWith(
         answerSubmitted: true,
-        // isCorrect sudah dihitung di selectAnswer
      );
   }
   
@@ -135,13 +129,7 @@ class LessonNotifier extends StateNotifier<LessonState> {
   }
 
   void resetLesson() {
-    state = LessonState(
-      questions: mockQuestions,
-      currentIndex: 0,
-      selectedOption: null,
-      answerSubmitted: false,
-      isCorrect: false,
-      lessonCompleted: false,
-    );
+    // FIX: Menggunakan _initialState yang baru untuk reset yang benar
+    state = _initialState(ref);
   }
 }

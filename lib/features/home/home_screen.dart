@@ -100,8 +100,8 @@ class HomeScreen extends ConsumerWidget {
             KataKataButton(
               text: 'Mulai Latihan Baru',
               onPressed: () {
-                 // UBAH: Navigasi ke Stage Selection Screen
-                 context.push('/stages'); 
+                 // UBAH: Navigasi ke Language Selection Screen
+                 context.push('/languages'); // <-- UBAH ROUTE DI SINI
               },
             ),
             const SizedBox(height: 15),

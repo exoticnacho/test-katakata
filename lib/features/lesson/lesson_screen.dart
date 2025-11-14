@@ -40,17 +40,12 @@ class LessonScreen extends ConsumerWidget {
    return Scaffold(
       backgroundColor: KataKataColors.offWhite,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false, // <-- TAMBAHKAN BARIS INI
-        // START: IMPLEMENTASI TOMBOL KELUAR
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: KataKataColors.charcoal),
-          onPressed: () => _showExitConfirmationDialog(context),
-        ),
-        // END: IMPLEMENTASI TOMBOL KELUAR
+        // FIX: AppBar bersih, mengandalkan tombol back sistem
+        backgroundColor: KataKataColors.offWhite, 
+        elevation: 1, // Beri sedikit bayangan
+        // Hapus semua logika leading, actions, dan automaticallyImplyLeading
         title: Text(
-          'Latihan Level $currentLevel - Stage $localStage', // Judul Dinamis
+          'Latihan Level $currentLevel - Stage $localStage', 
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.bold,

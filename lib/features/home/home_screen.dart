@@ -94,14 +94,24 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             
-            const Spacer(), // Dorong konten ke tengah bawah
+             const Spacer(), 
 
-            // Tombol Mulai Latihan Baru
+            // Tombol Mulai Latihan Pengucapan (FITUR BARU)
+            KataKataButton(
+              text: 'Latihan Pengucapan',
+              onPressed: () {
+                 context.push('/pronounce'); // <-- NAVIGASI KE LAYAR BARU
+              },
+              backgroundColor: KataKataColors.violetCerah.withOpacity(0.8),
+              foregroundColor: KataKataColors.offWhite,
+            ),
+            const SizedBox(height: 10),
+
+            // Tombol Mulai Latihan Baru (Lama)
             KataKataButton(
               text: 'Mulai Latihan Baru',
               onPressed: () {
-                 // UBAH: Navigasi ke Language Selection Screen
-                 context.push('/languages'); // <-- UBAH ROUTE DI SINI
+                 context.push('/languages');
               },
             ),
             const SizedBox(height: 15),

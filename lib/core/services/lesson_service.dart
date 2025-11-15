@@ -1,8 +1,7 @@
 // lib/core/services/lesson_service.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// FIX: Hapus data mock lama dan import data dari file baru
 import 'package:katakata_app/core/data/mock_questions.dart';
-import 'package:katakata_app/core/services/user_service.dart'; // Digunakan untuk mendapatkan level user
+import 'package:katakata_app/core/services/user_service.dart';
 
 // Model untuk Soal (Tetap sama)
 class Question {

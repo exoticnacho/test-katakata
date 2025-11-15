@@ -1,6 +1,5 @@
 // lib/app/app.dart
 import 'package:flutter/material.dart';
-// FIX: Imports localization
 import 'package:flutter_localizations/flutter_localizations.dart'; 
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +18,7 @@ import 'package:katakata_app/features/lesson/stage_selection_screen.dart';
 import 'package:katakata_app/features/lesson/language_selection_screen.dart';
 import 'package:katakata_app/features/statistics/word_list_screen.dart';
 import 'package:katakata_app/features/minigames/flashcard_screen.dart';
+import 'package:katakata_app/features/minigames/pronunciation_screen.dart';
 
 // FIX: GlobalKey untuk GoRouter
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -64,17 +64,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return MainLayoutScreen(child: child);
         },
         routes: [
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
+      GoRoute(path: '/signin', builder: (context, state) => const SignInScreen()),
+      
+      ShellRoute(
+        builder: (context, state, child) {
+          return MainLayoutScreen(child: child);
+        },
+        routes: [
           GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
           GoRoute(path: '/statistik', builder: (context, state) => const StatisticsScreen()),
           GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           GoRoute(path: '/languages', builder: (context, state) => const LanguageSelectionScreen()),
-          
-          // FIX: TAMBAHKAN GLOSARIUM SEBAGAI HALAMAN NAVIGASI BARU
           GoRoute(path: '/wordlist', builder: (context, state) => const WordListScreen()),
         ],
       ),
       
-      // Rute yang TIDAK memiliki Bottom Navigation Bar:
+      GoRoute(
+        path: '/wordlist',
+        builder: (context, state) => const WordListScreen(),
+      ),
+      
       GoRoute(
         path: '/stages',
         builder: (context, state) => const StageSelectionScreen(),
@@ -86,12 +97,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return LessonScreen(stageNumber: stageNumber);
         },
       ),
+
+      // Rute Flashcard
       GoRoute(
         path: '/flashcard',
         builder: (context, state) => const FlashcardScreen(),
       ),
+
+      // FIX: TAMBAHKAN RUTE PRONOUNCE YANG HILANG DI SINI
+      GoRoute(
+        path: '/pronounce',
+        builder: (context, state) => const PronunciationScreen(),
+      ),
     ],
-  );
+    ),
+    ]
+  );  
 });
 
 class MyApp extends ConsumerWidget {

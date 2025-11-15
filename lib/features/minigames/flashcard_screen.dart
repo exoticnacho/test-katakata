@@ -6,10 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/flashcard_service.dart';
 import 'package:katakata_app/widgets/custom_button.dart';
-import 'package:flip_card/flip_card.dart'; // Import package ini jika digunakan
-
-// Catatan: Asumsikan Anda telah menambahkan 'flip_card: ^0.7.0' (atau versi terbaru)
-// di pubspec.yaml untuk fungsionalitas membalik kartu.
+import 'package:flip_card/flip_card.dart'; 
 
 class FlashcardScreen extends ConsumerWidget {
   const FlashcardScreen({super.key});

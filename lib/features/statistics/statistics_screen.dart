@@ -4,17 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/user_service.dart';
+import 'package:go_router/go_router.dart';
 
 class StatisticsScreen extends ConsumerWidget {
     const StatisticsScreen({super.key});
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
-        final userProfile = ref.watch(userProfileProvider);
+      final userProfile = ref.watch(userProfileProvider);
+      final totalWords = userProfile?.totalWordsTaught ?? 0;
 
-        return Scaffold(
-            backgroundColor: KataKataColors.offWhite,
-            appBar: AppBar(
+      return Scaffold(
+        backgroundColor: KataKataColors.offWhite,
+        appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: Text(
@@ -47,11 +49,22 @@ class StatisticsScreen extends ConsumerWidget {
                                 value: '${userProfile.streak} hari',
                             ),
                             const SizedBox(height: 16),
-                            _BuildStatCard(
-                                iconAsset: 'icon_total_words.png',
-                                title: 'Total kata dipelajari:',
-                                value: '${userProfile.totalWordsTaught}',
+                            
+                            // START FIX: Bungkus kartu Total Kata dengan GestureDetector
+                            GestureDetector(
+                                onTap: () {
+                                    // Navigasi ke Glosarium Pribadi
+                                    context.push('/wordlist'); 
+                                },
+                                // Kartu yang menampilkan total kata dipelajari
+                                child: _BuildStatCard(
+                                    iconAsset: 'icon_total_words.png',
+                                    title: 'Total kata dipelajari:',
+                                    value: '${userProfile.totalWordsTaught}',
+                                ),
                             ),
+                            // END FIX
+                            
                             const SizedBox(height: 16),
                             _BuildStatCard(
                                 iconAsset: 'icon_active_level.png',
@@ -67,9 +80,6 @@ class StatisticsScreen extends ConsumerWidget {
                         ] else
                             const CircularProgressIndicator(),
                         const SizedBox(height: 40),
-                        
-                        // NOTE: Pencapaian dipindahkan kembali ke ProfileScreen sesuai permintaan, 
-                        // tapi kita sediakan spasi di sini jika ingin menambah grafik dll.
                     ],
                 ),
             ),

@@ -8,7 +8,7 @@ import 'package:katakata_app/core/services/flashcard_service.dart';
 import 'package:katakata_app/widgets/custom_button.dart';
 import 'package:flip_card/flip_card.dart'; // Import package ini jika digunakan
 
-// Catatan: Asumsikan Anda telah menambahkan 'flip_card: ^0.7.0' (atau versi terbaru) 
+// Catatan: Asumsikan Anda telah menambahkan 'flip_card: ^0.7.0' (atau versi terbaru)
 // di pubspec.yaml untuk fungsionalitas membalik kartu.
 
 class FlashcardScreen extends ConsumerWidget {
@@ -39,7 +39,8 @@ class FlashcardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFlashcard(BuildContext context, FlashcardState state, FlashcardNotifier notifier) {
+  Widget _buildFlashcard(
+      BuildContext context, FlashcardState state, FlashcardNotifier notifier) {
     if (state.sessionWords.isEmpty) {
       return Center(
         child: Text(
@@ -48,7 +49,7 @@ class FlashcardScreen extends ConsumerWidget {
         ),
       );
     }
-    
+
     final currentWord = state.sessionWords[state.currentIndex];
 
     return Padding(
@@ -60,12 +61,14 @@ class FlashcardScreen extends ConsumerWidget {
             child: FlipCard(
               direction: FlipDirection.HORIZONTAL,
               flipOnTouch: true,
-              front: _buildCardContent(currentWord.english, 'English', KataKataColors.violetCerah),
-              back: _buildCardContent(currentWord.indonesian, 'Indonesia', KataKataColors.kuningCerah),
+              front: _buildCardContent(
+                  currentWord.english, 'English', KataKataColors.violetCerah),
+              back: _buildCardContent(currentWord.indonesian, 'Indonesia',
+                  KataKataColors.kuningCerah),
             ),
           ),
           const SizedBox(height: 20),
-          
+
           // Tombol Aksi
           SizedBox(
             width: double.infinity,
@@ -108,7 +111,9 @@ class FlashcardScreen extends ConsumerWidget {
             children: [
               Text(
                 lang,
-                style: GoogleFonts.poppins(fontSize: 16, color: KataKataColors.charcoal.withOpacity(0.8)),
+                style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: KataKataColors.charcoal.withOpacity(0.8)),
               ),
               const SizedBox(height: 10),
               Text(
@@ -127,10 +132,8 @@ class FlashcardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCompletionScreen(BuildContext context, FlashcardNotifier notifier) {
-    // 3 kata baru ditambahkan ke statistik setelah sesi review selesai
-    notifier.completeSession(3); 
-    
+  Widget _buildCompletionScreen(
+      BuildContext context, FlashcardNotifier notifier) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -139,23 +142,33 @@ class FlashcardScreen extends ConsumerWidget {
           children: [
             Text(
               'Review Selesai!',
-              style: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.bold, color: KataKataColors.pinkCeria),
+              style: GoogleFonts.poppins(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: KataKataColors.pinkCeria),
             ),
             const SizedBox(height: 16),
             Text(
               'Anda telah memperkuat ${notifier.state.sessionWords.length} kata dan mendapatkan kemajuan!',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 18, color: KataKataColors.charcoal),
+              style: GoogleFonts.poppins(
+                  fontSize: 18, color: KataKataColors.charcoal),
             ),
             const SizedBox(height: 32),
             Text(
               '+3 Kata Baru!',
-              style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.green.shade600),
+              style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.green.shade600),
             ),
             const SizedBox(height: 40),
             KataKataButton(
               text: 'Lanjut ke Glosarium',
-              onPressed: () => context.go('/wordlist'),
+              onPressed: () {
+                notifier.completeSession(3); // Tambahkan 3 kata baru
+                context.pop(); // FIX: Ganti context.go menjadi context.pop() untuk kembali
+              },
               backgroundColor: KataKataColors.violetCerah,
             ),
           ],

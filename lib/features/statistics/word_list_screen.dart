@@ -10,48 +10,114 @@ import 'package:katakata_app/core/services/user_service.dart';
 class WordListScreen extends ConsumerWidget {
   const WordListScreen({super.key});
 
+  // Widget AppBar Kustom dengan tombol Kembali
+  Widget _buildCustomAppBar(BuildContext context) {
+    return Container(
+      color: KataKataColors.offWhite,
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, bottom: 8),
+      child: Row(
+        children: [
+          // FIX: Tombol Kembali/Tutup (Menggunakan context.go('/home'))
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: KataKataColors.charcoal), // Menggunakan panah kembali
+            onPressed: () => context.go('/home'), // Kembali ke Home
+          ),
+          Expanded(
+            child: Text(
+              'Glosarium Pribadi',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: KataKataColors.charcoal,
+              ),
+            ),
+          ),
+          // Placeholder agar judul tetap di tengah
+          const SizedBox(width: 48), 
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfile = ref.watch(userProfileProvider);
     final totalWords = userProfile?.totalWordsTaught ?? 0;
-
-    // Ambil daftar kata yang dipelajari berdasarkan totalWordsTaught
     final wordsToShow = mockLearnedWords.take(totalWords).toList();
-
+    
+    // Hitung tinggi AppBar kustom + elevation
+    final double customAppBarHeight = MediaQuery.of(context).padding.top + kToolbarHeight;
+    
     return Scaffold(
       backgroundColor: KataKataColors.offWhite,
-      appBar: AppBar(
-        backgroundColor: KataKataColors.offWhite,
-        elevation: 1,
-        title: Text(
-          'Glosarium Pribadi',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: KataKataColors.charcoal,
+      // HAPUS AppBar standar
+
+      // FIX: Gunakan Stack di Body untuk Custom AppBar dan Konten
+      body: Stack(
+        children: [
+          // 1. KONTEN DAFTAR KATA (ListView)
+          // Tambahkan padding di atas untuk memberi ruang pada AppBar kustom
+          Padding(
+            padding: EdgeInsets.only(top: customAppBarHeight, bottom: 100), // Padding atas disesuaikan
+            child: wordsToShow.isEmpty
+                ? Center(
+                    child: Text(
+                      'Belum ada kata yang dicatat.\nAyo mulai latihan!',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: KataKataColors.charcoal.withOpacity(0.6), fontSize: 16),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: wordsToShow.length,
+                    itemBuilder: (context, index) {
+                      final word = wordsToShow[index];
+                      return _buildWordTile(word);
+                    },
+                  ),
           ),
-        ),
-      ),
-      body: wordsToShow.isEmpty
-          ? Center(
-              child: Text(
-                'Belum ada kata yang dicatat.\nAyo mulai latihan!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                    color: KataKataColors.charcoal.withOpacity(0.6),
-                    fontSize: 16),
+          
+          // 2. CUSTOM APP BAR (Overlay di atas)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: KataKataColors.offWhite,
+                boxShadow: [
+                  BoxShadow(
+                    color: KataKataColors.charcoal.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: wordsToShow.length,
-              itemBuilder: (context, index) {
-                final word = wordsToShow[index];
-                return _buildWordTile(word);
-              },
+              height: customAppBarHeight, // Set tinggi agar sesuai dengan padding
+              child: _buildCustomAppBar(context),
             ),
-          );
-        }
+          ),
+          
+          // 3. TOMBOL PELUNCUR FLASHCARD (Overlay di bawah)
+          if (totalWords > 0)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  context.push('/flashcard'); 
+                },
+                backgroundColor: KataKataColors.pinkCeria,
+                icon: const Icon(Icons.flash_on, color: KataKataColors.offWhite),
+                label: Text('Mulai Review Kata!', style: GoogleFonts.poppins(color: KataKataColors.offWhite, fontWeight: FontWeight.bold)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildWordTile(LearnedWord word) {
     return Card(

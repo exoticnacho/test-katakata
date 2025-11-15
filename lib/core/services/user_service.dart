@@ -65,7 +65,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
     state = UserProfile(
       name: 'Pengguna KataKata',
       streak: 0, 
-      totalWordsTaught: 0,
+      totalWordsTaught: 5,
       currentLevel: 1, 
       xp: 0, // <-- UBAH XP AWAL KE 0
       isLevelingUp: false,

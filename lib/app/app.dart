@@ -18,6 +18,7 @@ import 'package:katakata_app/widgets/level_up_modal.dart'; // Tetap di sini
 import 'package:katakata_app/features/lesson/stage_selection_screen.dart';
 import 'package:katakata_app/features/lesson/language_selection_screen.dart';
 import 'package:katakata_app/features/statistics/word_list_screen.dart';
+import 'package:katakata_app/features/minigames/flashcard_screen.dart';
 
 // FIX: GlobalKey untuk GoRouter
 final rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -27,13 +28,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/',
-    navigatorKey: rootNavigatorKey, // Pasang GlobalKey di sini
+    navigatorKey: rootNavigatorKey, 
     
     redirect: (BuildContext context, GoRouterState state) {
       final bool loggedIn = authState;
       final String location = state.uri.toString();
       final isPublicRoute = (location == '/' || location == '/onboarding' || location == '/signin');
-      final isAuthRoute = location.startsWith('/home') || location.startsWith('/profile') || location.startsWith('/statistik') || location.startsWith('/lesson');
+      final isAuthRoute = location.startsWith('/home') || 
+                          location.startsWith('/profile') || 
+                          location.startsWith('/statistik') ||
+                          // FIX: Tambahkan /wordlist ke auth routes
+                          location.startsWith('/wordlist') ||
+                          location.startsWith('/lesson') ||
+                          location.startsWith('/languages') ||
+                          location.startsWith('/stages') ||
+                          location.startsWith('/flashcard');
 
       if (!loggedIn && isAuthRoute) {
         return '/signin'; 
@@ -59,15 +68,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/statistik', builder: (context, state) => const StatisticsScreen()),
           GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           GoRoute(path: '/languages', builder: (context, state) => const LanguageSelectionScreen()),
+          
+          // FIX: TAMBAHKAN GLOSARIUM SEBAGAI HALAMAN NAVIGASI BARU
+          GoRoute(path: '/wordlist', builder: (context, state) => const WordListScreen()),
         ],
       ),
       
-        GoRoute(
-        path: '/wordlist',
-        builder: (context, state) => const WordListScreen(),
-      ),
-      
-      // Rute Stages dan Lesson (di luar ShellRoute)
+      // Rute yang TIDAK memiliki Bottom Navigation Bar:
       GoRoute(
         path: '/stages',
         builder: (context, state) => const StageSelectionScreen(),
@@ -83,12 +90,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/flashcard',
         builder: (context, state) => const FlashcardScreen(),
       ),
-      
-      // Rute WordListScreen, Stages, dan Lesson (di luar ShellRoute)
-      GoRoute(
-        path: '/wordlist',
-        builder: (context, state) => const WordListScreen(),
-      ),
     ],
   );
 });
@@ -99,15 +100,11 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
-    
-    // FIX: HAPUS GLOBAL LISTENER DI SINI. Logic Level Up sekarang ditangani sepenuhnya
-    //      di LessonScreen untuk sequencing yang benar.
 
     return MaterialApp.router(
       title: 'KataKata',
       debugShowCheckedModeBanner: false,
       
-      // FIX: Menambahkan localization delegates
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

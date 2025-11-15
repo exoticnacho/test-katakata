@@ -1,10 +1,11 @@
 // lib/features/statistics/statistics_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // Import GoRouter
 import 'package:google_fonts/google_fonts.dart';
 import 'package:katakata_app/core/constants/colors.dart';
 import 'package:katakata_app/core/services/user_service.dart';
-import 'package:go_router/go_router.dart';
 
 class StatisticsScreen extends ConsumerWidget {
     const StatisticsScreen({super.key});
@@ -47,35 +48,42 @@ class StatisticsScreen extends ConsumerWidget {
                                 iconAsset: 'icon_streak.png',
                                 title: 'Streak hari ini:',
                                 value: '${userProfile.streak} hari',
+                                isClickable: false,
                             ),
                             const SizedBox(height: 16),
                             
-                            // START FIX: Bungkus kartu Total Kata dengan GestureDetector
+                            // FIX: Kartu Total Kata Dipelajari (Menjadi Tombol Jelas)
                             GestureDetector(
                                 onTap: () {
-                                    // Navigasi ke Glosarium Pribadi
-                                    context.push('/wordlist'); 
+                                    context.push('/wordlist'); // Navigasi ke Glosarium
                                 },
-                                // Kartu yang menampilkan total kata dipelajari
-                                child: _BuildStatCard(
-                                    iconAsset: 'icon_total_words.png',
-                                    title: 'Total kata dipelajari:',
-                                    value: '${userProfile.totalWordsTaught}',
+                                // Gunakan InkWell untuk efek visual saat diklik
+                                child: InkWell(
+                                    onTap: () {
+                                        context.push('/wordlist'); // Navigasi ke Glosarium
+                                    },
+                                    child: _BuildStatCard(
+                                        iconAsset: 'icon_total_words.png',
+                                        title: 'Total kata dipelajari:',
+                                        value: '${userProfile.totalWordsTaught}',
+                                        isClickable: true, // Kartu ini bisa diklik
+                                    ),
                                 ),
                             ),
-                            // END FIX
                             
                             const SizedBox(height: 16),
                             _BuildStatCard(
                                 iconAsset: 'icon_active_level.png',
                                 title: 'Level aktif:',
                                 value: 'Level ${userProfile.currentLevel}',
+                                isClickable: false,
                             ),
                             const SizedBox(height: 16),
                             _BuildStatCard(
                                 iconAsset: 'icon_streak.png',
                                 title: 'Total XP:',
                                 value: '${userProfile.xp}',
+                                isClickable: false,
                             ),
                         ] else
                             const CircularProgressIndicator(),
@@ -87,26 +95,33 @@ class StatisticsScreen extends ConsumerWidget {
     }
 }
 
-// Sub-Widget: _BuildStatCard (digunakan hanya di StatisticsScreen)
+// Sub-Widget: _BuildStatCard (Modifikasi untuk mendukung Clickable state)
 class _BuildStatCard extends StatelessWidget {
     final String iconAsset; 
     final String title;
     final String value;
+    final bool isClickable; 
     
     const _BuildStatCard({ 
         required this.iconAsset, 
         required this.title,
         required this.value,
+        this.isClickable = false,
     });
 
   @override
   Widget build(BuildContext context) {
+    // FIX: Hapus semua border dan warna background yang mengindikasikan border
+    // Gunakan warna latar belakang polos offWhite
+    final Color effectiveBackgroundColor = KataKataColors.offWhite;
+    
     return Container( 
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: KataKataColors.offWhite,
-        border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)),
+        color: effectiveBackgroundColor,
+        // FIX: Hapus Border.all sepenuhnya
+        border: Border.all(color: KataKataColors.charcoal.withOpacity(0.1)), 
       ),
       child: Row(
         children: [
@@ -134,6 +149,13 @@ class _BuildStatCard extends StatelessWidget {
               ],
             ),
           ),
+          // FIX: Perjelas ikon panah jika bisa diklik
+          if (isClickable) 
+            const Icon(
+                Icons.arrow_forward_ios, 
+                color: KataKataColors.pinkCeria, 
+                size: 20
+            ),
         ],
       ),
     );

@@ -12,8 +12,8 @@ class LanguageSelectionScreen extends ConsumerWidget {
   final List<Map<String, dynamic>> languages = const [
     // flag_uk.png sudah tersedia, sisanya perlu ditambahkan secara visual oleh Anda (atau biarkan errorBuilder yang menangani)
     {'name': 'English', 'flag': 'assets/images/flag_uk.png', 'unlocked': true, 'code': 'en'},
-    {'name': 'Spanish', 'flag': 'assets/images/flag_es_placeholder.png', 'unlocked': false, 'code': 'es'},
-    {'name': 'French', 'flag': 'assets/images/flag_fr_placeholder.png', 'unlocked': false, 'code': 'fr'},
+    {'name': 'Spanish', 'flag': 'assets/images/flag_es.png', 'unlocked': false, 'code': 'es'},
+    {'name': 'French', 'flag': 'assets/images/flag_fr.png', 'unlocked': false, 'code': 'fr'},
   ];
 
   @override
@@ -55,10 +55,17 @@ class LanguageSelectionScreen extends ConsumerWidget {
     final color = isUnlocked ? KataKataColors.violetCerah : KataKataColors.charcoal.withOpacity(0.5);
 
     return GestureDetector(
-      onTap: () { /* ... navigasi tetap sama ... */ },
+      onTap: () {
+        if (isUnlocked) {
+          // FIX: Ganti context.push menjadi context.go untuk memastikan navigasi terjadi
+          context.go('/stages'); 
+        } else {
+          _showLockedMessage(context, lang['name'] as String);
+        }
+      },
       child: Container(
-        // FIX 1: Kurangi Padding dari 16 menjadi 12
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        // FIX 1: Kurangi Vertical Padding dari 12 menjadi 8
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16), 
         decoration: BoxDecoration(
           color: KataKataColors.offWhite,
           borderRadius: BorderRadius.circular(12),
@@ -73,12 +80,12 @@ class LanguageSelectionScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            // FIX 2: Kecilkan ukuran bendera/ikon
+            // FIX 2: Kecilkan ukuran bendera/ikon dari 32 menjadi 28
             Image.asset(
               lang['flag'] as String,
-              width: 32, // <-- UBAH DARI 40 KE 32
-              height: 32, // <-- UBAH DARI 40 KE 32
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.language, size: 32, color: KataKataColors.charcoal),
+              width: 28, // <-- UBAH UKURAN
+              height: 28, // <-- UBAH UKURAN
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.language, size: 28, color: KataKataColors.charcoal),
             ),
             const SizedBox(width: 16),
             Expanded(

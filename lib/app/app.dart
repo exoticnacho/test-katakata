@@ -79,6 +79,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return LessonScreen(stageNumber: stageNumber);
         },
       ),
+      GoRoute(
+        path: '/flashcard',
+        builder: (context, state) => const FlashcardScreen(),
+      ),
+      
+      // Rute WordListScreen, Stages, dan Lesson (di luar ShellRoute)
+      GoRoute(
+        path: '/wordlist',
+        builder: (context, state) => const WordListScreen(),
+      ),
     ],
   );
 });

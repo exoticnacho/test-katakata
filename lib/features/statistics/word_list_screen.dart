@@ -16,7 +16,6 @@ class WordListScreen extends ConsumerWidget {
     final totalWords = userProfile?.totalWordsTaught ?? 0;
 
     // Ambil daftar kata yang dipelajari berdasarkan totalWordsTaught
-    // Batasi daftar kata mock agar sesuai dengan total yang dipelajari user
     final wordsToShow = mockLearnedWords.take(totalWords).toList();
 
     return Scaffold(
@@ -38,7 +37,9 @@ class WordListScreen extends ConsumerWidget {
               child: Text(
                 'Belum ada kata yang dicatat.\nAyo mulai latihan!',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(color: KataKataColors.charcoal.withOpacity(0.6), fontSize: 16),
+                style: GoogleFonts.poppins(
+                    color: KataKataColors.charcoal.withOpacity(0.6),
+                    fontSize: 16),
               ),
             )
           : ListView.builder(
@@ -49,17 +50,8 @@ class WordListScreen extends ConsumerWidget {
                 return _buildWordTile(word);
               },
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Navigasi kembali ke statistik atau home
-          context.pop(); 
-        },
-        backgroundColor: KataKataColors.violetCerah,
-        icon: const Icon(Icons.arrow_back, color: KataKataColors.offWhite),
-        label: Text('Kembali', style: GoogleFonts.poppins(color: KataKataColors.offWhite)),
-      ),
-    );
-  }
+          );
+        }
 
   Widget _buildWordTile(LearnedWord word) {
     return Card(

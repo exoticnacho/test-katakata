@@ -92,6 +92,15 @@ class UserProfileNotifier extends StateNotifier<UserProfile?> {
     }
   }
 
+  void addWordsTaught(int wordsToAdd) {
+    if (state != null) {
+      int newTotalWords = state!.totalWordsTaught + wordsToAdd;
+      state = state!.copyWith(
+        totalWordsTaught: newTotalWords,
+      );
+    }
+  }
+
   void levelUp() {
     if (state != null) { 
       int nextLevel = state!.currentLevel + 1;

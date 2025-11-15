@@ -36,13 +36,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isPublicRoute = (location == '/' || location == '/onboarding' || location == '/signin');
       final isAuthRoute = location.startsWith('/home') || 
                           location.startsWith('/profile') || 
-                          location.startsWith('/statistik') ||
-                          // FIX: Tambahkan /wordlist ke auth routes
-                          location.startsWith('/wordlist') ||
+                          location.startsWith('/statistik') || 
                           location.startsWith('/lesson') ||
                           location.startsWith('/languages') ||
                           location.startsWith('/stages') ||
-                          location.startsWith('/flashcard');
+                          location.startsWith('/wordlist') ||
+                          location.startsWith('/flashcard') ||
+                          location.startsWith('/pronounce'); // FIX: Tambahkan Pronounce
 
       if (!loggedIn && isAuthRoute) {
         return '/signin'; 
@@ -59,16 +59,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: '/signin', builder: (context, state) => const SignInScreen()),
       
-      ShellRoute(
-        builder: (context, state, child) {
-          return MainLayoutScreen(child: child);
-        },
-        routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
-      GoRoute(path: '/signin', builder: (context, state) => const SignInScreen()),
-      
-      ShellRoute(
+      ShellRoute( // Rute dengan Bottom Navigation Bar
         builder: (context, state, child) {
           return MainLayoutScreen(child: child);
         },
@@ -77,15 +68,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/statistik', builder: (context, state) => const StatisticsScreen()),
           GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
           GoRoute(path: '/languages', builder: (context, state) => const LanguageSelectionScreen()),
+          // FIX: Rute /wordlist HANYA ada di sini
           GoRoute(path: '/wordlist', builder: (context, state) => const WordListScreen()),
         ],
       ),
       
-      GoRoute(
-        path: '/wordlist',
-        builder: (context, state) => const WordListScreen(),
-      ),
-      
+      // Rute yang TIDAK memiliki Bottom Navigation Bar:
       GoRoute(
         path: '/stages',
         builder: (context, state) => const StageSelectionScreen(),
@@ -97,22 +85,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return LessonScreen(stageNumber: stageNumber);
         },
       ),
-
-      // Rute Flashcard
       GoRoute(
         path: '/flashcard',
         builder: (context, state) => const FlashcardScreen(),
       ),
-
-      // FIX: TAMBAHKAN RUTE PRONOUNCE YANG HILANG DI SINI
+      // FIX: Rute Pronunciation HANYA ada di sini
       GoRoute(
         path: '/pronounce',
         builder: (context, state) => const PronunciationScreen(),
       ),
     ],
-    ),
-    ]
-  );  
+  );
 });
 
 class MyApp extends ConsumerWidget {
@@ -121,7 +104,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
-
+    
     return MaterialApp.router(
       title: 'KataKata',
       debugShowCheckedModeBanner: false,
